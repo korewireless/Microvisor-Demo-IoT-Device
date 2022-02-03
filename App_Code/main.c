@@ -219,6 +219,9 @@ void start_led_task(void *argument) {
                 if (counter > 9999) counter = 0;
             }
         }
+
+        // End of cycle delay
+        osDelay(10);
     }
 }
 
@@ -240,7 +243,7 @@ void start_iot_task(void *argument) {
     if (got_sensor) temp = MCP9808_read_temp();
 
     // Time trackers
-    uint32_t read_tick = HAL_GetTick();
+    uint32_t read_tick = 0;
     uint32_t kill_time = 0;
 
     // Run the thread's main loop
@@ -279,6 +282,9 @@ void start_iot_task(void *argument) {
             kill_time = 0;
             http_close_channel();
         }
+
+        // End of cycle delay
+        osDelay(10);
     }
 }
 

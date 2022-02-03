@@ -1,3 +1,11 @@
+/**
+ *
+ * Microvisor IoT Device Demo
+ * Version 1.0.0
+ * Copyright © 2022, Twilio
+ * Licence: Apache 2.0
+ *
+ */
 #include "main.h"
 
 
@@ -7,7 +15,10 @@ extern      bool                use_i2c;
 
 void I2C_init() {
     // Configure I2C1
-    i2c.Instance = I2C1;
+    // I2C1 pins are:
+    //   SDA -> PB9
+    //   SCL -> PB6
+    i2c.Instance              = I2C1;
     i2c.Init.Timing           = 0x00C01F67;  // FROM ST SAMPLE
     i2c.Init.AddressingMode   = I2C_ADDRESSINGMODE_7BIT;
     i2c.Init.DualAddressMode  = I2C_DUALADDRESS_DISABLE;
@@ -19,7 +30,7 @@ void I2C_init() {
 
     // Initialize the I2C itself with the i2c handle
     if (HAL_I2C_Init(&i2c) != HAL_OK) {
-        printf("ERROR -- I2C init failed\n");
+        printf("[ERROR] I2C init failed\n");
         return;
     }
 
@@ -37,13 +48,13 @@ bool I2C_check(uint8_t addr) {
             return true;
         } else {
             uint32_t err = HAL_I2C_GetError(&i2c);
-            printf("ERROR -- HAL_I2C_IsDeviceReady() : %i\n", status);
-            printf("ERROR -- HAL_I2C_GetError():       %li\n", err);
+            printf("[ERROR] HAL_I2C_IsDeviceReady() : %i\n", status);
+            printf("[ERROR] HAL_I2C_GetError():       %li\n", err);
         }
 
         // Flash the LED eight times on device not ready
         for (uint8_t i = 0 ; i < 8 ; ++i) {
-            HAL_GPIO_TogglePin(GPIOA, GPIO_PIN_5);
+            HAL_GPIO_TogglePin(LED_GPIO_BANK, LED_GPIO_PIN);
             HAL_Delay(100);
         }
 
@@ -76,7 +87,7 @@ void HAL_I2C_MspInit(I2C_HandleTypeDef *i2c) {
 
     // Initialize U5 peripheral clock
     if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK) {
-        printf("ERROR -- HAL_RCCEx_PeriphCLKConfig() failed\n");
+        printf("[ERROR] HAL_RCCEx_PeriphCLKConfig() failed\n");
         return;
     }
 

@@ -1,3 +1,11 @@
+/**
+ *
+ * Microvisor IoT Device Demo
+ * Version 1.0.0
+ * Copyright © 2022, Twilio
+ * Licence: Apache 2.0
+ *
+ */
 #ifndef _MCP9808_HEADER_
 #define _MCP9808_HEADER_
 
@@ -5,7 +13,8 @@
 /*
  *  CONSTANTS
  */
-#define MCP9808_I2CADDR_DEFAULT     0x18
+// Sensor I2C address
+#define MCP9808_ADDR                0x18
 
 // Register addresses
 #define MCP9808_REG_CONFIG          0x01

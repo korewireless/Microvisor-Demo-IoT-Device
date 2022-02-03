@@ -1,3 +1,11 @@
+/**
+ *
+ * Microvisor IoT Device Demo
+ * Version 1.0.0
+ * Copyright © 2022, Twilio
+ * Licence: Apache 2.0
+ *
+ */
 #ifndef _HT16K33_HEADER_
 #define _HT16K33_HEADER_
 
@@ -5,6 +13,7 @@
 /*
  * CONSTANTS
  */
+// Display I2C address
 #define     HT16K33_ADDR            0x70
 
 

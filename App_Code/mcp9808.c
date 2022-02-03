@@ -1,3 +1,11 @@
+/**
+ *
+ * Microvisor IoT Device Demo
+ * Version 1.0.0
+ * Copyright © 2022, Twilio
+ * Licence: Apache 2.0
+ *
+ */
 #include "main.h"
 
 
@@ -16,18 +24,18 @@ bool MCP9808_init() {
 
     // Read bytes from the sensor: MID...
     uint8_t cmd = MCP9808_REG_MANUF_ID;
-    HAL_I2C_Master_Transmit(&i2c, MCP9808_I2CADDR_DEFAULT << 1, &cmd,      1, 100);
-    HAL_I2C_Master_Receive(&i2c,  MCP9808_I2CADDR_DEFAULT << 1, mid_data, 2, 100);
+    HAL_I2C_Master_Transmit(&i2c, MCP9808_ADDR << 1, &cmd,      1, 100);
+    HAL_I2C_Master_Receive(&i2c,  MCP9808_ADDR << 1, mid_data, 2, 100);
 
     // ...DID
     cmd = MCP9808_REG_DEVICE_ID;
-    HAL_I2C_Master_Transmit(&i2c, MCP9808_I2CADDR_DEFAULT << 1, &cmd,      1, 100);
-    HAL_I2C_Master_Receive(&i2c,  MCP9808_I2CADDR_DEFAULT << 1, did_data, 2, 100);
+    HAL_I2C_Master_Transmit(&i2c, MCP9808_ADDR << 1, &cmd,      1, 100);
+    HAL_I2C_Master_Receive(&i2c,  MCP9808_ADDR << 1, did_data, 2, 100);
 
     // Bytes to integers
     const uint16_t mid_value = (mid_data[0] << 8) | mid_data[1];
     const uint16_t did_value = (did_data[0] << 8) | did_data[1];
-    //printf("MID: 0x%04x\nDID: 0x%04x\n", mid_value, did_value);
+    printf("[DEBUG] MCP9808 MID: 0x%04x, DID: 0x%04x\n", mid_value, did_value);
 
     // Returns true if the device is initialized, false otherwise.
     return (mid_value == 0x0054 && did_value == 0x0400);
@@ -42,8 +50,8 @@ double MCP9808_read_temp() {
     // Read sensor and return its value in degrees celsius.
     uint8_t temp_data[2] = { 0 };
     uint8_t cmd = MCP9808_REG_AMBIENT_TEMP;
-    HAL_I2C_Master_Transmit(&i2c, MCP9808_I2CADDR_DEFAULT << 1, &cmd,      1, 100);
-    HAL_I2C_Master_Receive(&i2c,  MCP9808_I2CADDR_DEFAULT << 1, temp_data, 2, 100);
+    HAL_I2C_Master_Transmit(&i2c, MCP9808_ADDR << 1, &cmd,      1, 100);
+    HAL_I2C_Master_Receive(&i2c,  MCP9808_ADDR << 1, temp_data, 2, 100);
 
     // Scale and convert to signed value.
     const uint32_t temp_raw = (temp_data[0] << 8) | temp_data[1];

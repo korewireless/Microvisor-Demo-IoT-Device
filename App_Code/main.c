@@ -1,26 +1,41 @@
+/**
+ *
+ * Microvisor IoT Device Demo
+ * Version 1.0.0
+ * Copyright © 2022, Twilio
+ * Licence: Apache 2.0
+ *
+ */
 #include "main.h"
 
 
-// Define thread tasks
-osThreadId_t GPIOTask;
-const osThreadAttr_t gpio_task_attributes = {
-    .name = "GPIOTask",
-    .priority = (osPriority_t) osPriorityNormal,
-    .stack_size = 1024
+/**
+ *  GLOBALS
+ */
+
+
+// This is the FreeRTOS thread task that flashed the USER LED
+// and operates the display
+osThreadId_t LEDTask;
+const osThreadAttr_t led_task_attributes = {
+    .name = "LEDTask",
+    .stack_size = 512,
+    .priority = (osPriority_t) osPriorityNormal
 };
 
-osThreadId_t DebugTask;
-const osThreadAttr_t debug_task_attributes = {
-    .name = "DebugTask",
-    .priority = (osPriority_t) osPriorityNormal,
-    .stack_size = 1024
+// This is the FreeRTOS thread task that reads the sensor
+// and displays the temperature on the LED
+osThreadId_t IOTTask;
+const osThreadAttr_t iot_task_attributes = {
+    .name = "IOTTask",
+    .stack_size = 1024,
+    .priority = (osPriority_t) osPriorityNormal
 };
 
-bool use_i2c = false;
-bool got_sensor = false;
 
+// I2C-related values
 I2C_HandleTypeDef i2c;
-UART_HandleTypeDef serial;
+
 
 // Central store for Microvisor resource handles used in this code.
 // See `https://www.twilio.com/docs/iot/microvisor/syscalls#http_handles`
@@ -30,17 +45,20 @@ struct {
     MvChannelHandle      channel;
 } http_handles = { 0, 0, 0 };
 
+
 /**
  *  Theses variables may be changed by interrupt handler code,
  *  so we mark them as `volatile` to ensure compiler optimization
  *  doesn't render them immutable at runtime
  */
-volatile uint16_t counter = 0;
-volatile bool show_count = true;
+volatile bool show_count = false;
 volatile bool request_sent = false;
 volatile bool request_recv = false;
-volatile double temp = 0.0;
+volatile bool got_sensor = false;
+volatile bool use_i2c = false;
 volatile uint8_t display_buffer[17] = { 0 };
+volatile uint16_t counter = 0;
+volatile double temp = 0.0;
 
 // Central store for notification records.
 // Holds one record at a time -- each record is 16 bytes.
@@ -49,7 +67,7 @@ volatile struct MvNotification http_notification_center[16];
 
 
 /**
- * The application entry point.
+ * @brief  The application entry point.
  */
 int main(void) {
     // Reset of all peripherals, Initializes the Flash interface and the Systick.
@@ -58,27 +76,23 @@ int main(void) {
     // Configure the system clock
     system_clock_config();
 
-    // Initialize peripherals
-    gpio_init();
-    //i2c_init();
-    //uart_init();
-
-    //got_sensor = MCP9808_init();
-    //if (got_sensor) temp = MCP9808_read_temp();
+    // Initialize the peripherals
+    GPIO_init();
+    I2C_init();
 
     // Init scheduler
     osKernelInitialize();
 
     // Create the thread(s)
-    DebugTask = osThreadNew(start_debug_task, NULL, &debug_task_attributes);
-    GPIOTask  = osThreadNew(start_gpio_task,  NULL, &gpio_task_attributes);
+    IOTTask = osThreadNew(start_iot_task, NULL, &iot_task_attributes);
+    LEDTask = osThreadNew(start_led_task, NULL, &led_task_attributes);
 
     // Start the scheduler
     osKernelStart();
 
     // We should never get here as control is now taken by the scheduler,
     // but just in case...
-    while (1) {
+    while (true) {
         // NOP
     }
 }
@@ -106,17 +120,26 @@ void system_clock_config(void) {
 
 
 /**
+  * @brief  This function is executed in case of error occurrence.
+  * @retval None
+  */
+void error_handler(void) {
+    printf("[ERROR] via Error_Handler()\n");
+}
+
+
+/**
   * @brief  GPIO Initialization Function
   * @retval None
   */
-void gpio_init(void) {
+void GPIO_init(void) {
     // Enable GPIO port clock
     __HAL_RCC_GPIOA_CLK_ENABLE();
     __HAL_RCC_GPIOF_CLK_ENABLE();
 
     // Configure GPIO pin output Level
     HAL_GPIO_WritePin(LED_GPIO_BANK, LED_GPIO_PIN, GPIO_PIN_RESET);
-    HAL_GPIO_WritePin(GPIOF, GPIO_PIN_6, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(BUTTON_GPIO_BANK, BUTTON_GPIO_PIN, GPIO_PIN_RESET);
 
     // Configure GPIO pin : PA5 - Pin under test
     GPIO_InitTypeDef GPIO_InitStruct = { 0 };
@@ -128,10 +151,10 @@ void gpio_init(void) {
 
     // Configure GPIO pin : PA5 - Pin under test
     GPIO_InitTypeDef GPIO_InitStruct2 = { 0 };
-    GPIO_InitStruct2.Pin   = GPIO_PIN_6;
+    GPIO_InitStruct2.Pin   = BUTTON_GPIO_PIN;
     GPIO_InitStruct2.Mode  = GPIO_MODE_INPUT;
     GPIO_InitStruct2.Pull  = GPIO_PULLDOWN;
-    HAL_GPIO_Init(GPIOF, &GPIO_InitStruct2);
+    HAL_GPIO_Init(BUTTON_GPIO_BANK, &GPIO_InitStruct2);
 }
 
 
@@ -140,17 +163,21 @@ void gpio_init(void) {
   * @param  argument: Not used
   * @retval None
   */
-void start_gpio_task(void *argument) {
+void start_led_task(void *argument) {
+    uint32_t last_tick = 0;
+
+    // Button state values
     uint32_t press_debounce = 0;
     uint32_t release_debounce = 0;
-    uint32_t last_tick = 0;
     bool pressed = false;
+
+    // Set up the display if it's available
     if (use_i2c) HT16K33_init();
 
     while (true) {
         // Get the ms timer value and read the button
         uint32_t tick = HAL_GetTick();
-        GPIO_PinState state = HAL_GPIO_ReadPin(GPIOF, GPIO_PIN_6);
+        GPIO_PinState state = HAL_GPIO_ReadPin(BUTTON_GPIO_BANK, BUTTON_GPIO_PIN);
 
         // Check for a press or release, and debounce
         if (state == 1 && !pressed) {
@@ -198,8 +225,8 @@ void start_gpio_task(void *argument) {
   * @param  argument: Not used
   * @retval None
   */
-void start_debug_task(void *argument) {
-    uint32_t n = 0;
+void start_iot_task(void *argument) {
+    uint32_t count = 0;
 
     // Get the Device ID and build number
     uint8_t buffer[35] = { 0 };
@@ -209,46 +236,20 @@ void start_debug_task(void *argument) {
     printf("\n");
     printf("Build: %i\n", BUILD_NUM);
 
-    while (true) {
-        printf("Debug ping %lu seconds\n", n++);
-        if (n % 100 == 0 && request_sent) {
-            request_sent = false;
-        }
+    got_sensor = MCP9808_init();
+    if (got_sensor) temp = MCP9808_read_temp();
 
+    // Run the thread's main loop
+    while (true) {
         if (got_sensor) {
             temp = MCP9808_read_temp();
-            if (n % 10 == 0) printf("Temperature: %.02f\n", temp);
-        }
-
-        if (!request_sent) {
-            request_sent = true;
-            if (http_handles.channel == 0) {
-                http_open_channel();
-                bool result = http_send_request();
-                if (!result) {
-                    printf("***\n");
-                    request_recv = true;
-                }
-            }
-        }
-
-        if (request_recv) {
-            request_recv = false;
-            http_close_channel();
+            if (count % 10 == 0) printf("[DEBUG] Temperature: %.02f\n", temp);
         }
 
         // Pause per cycle
         osDelay(DEBUG_TASK_PAUSE);
+        count++;
     }
-}
-
-
-/**
-  * @brief  This function is executed in case of error occurrence.
-  * @retval None
-  */
-void error_handler(void) {
-    printf("[ERROR] via Error_Handler()\n");
 }
 
 

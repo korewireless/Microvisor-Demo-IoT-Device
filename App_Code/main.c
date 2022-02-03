@@ -111,7 +111,7 @@ uint32_t SECURE_SystemCoreClockUpdate() {
 
 /**
   * @brief  System clock configuration
-  * @retval None
+  *
   */
 void system_clock_config(void) {
     SystemCoreClockUpdate();
@@ -121,7 +121,7 @@ void system_clock_config(void) {
 
 /**
   * @brief  This function is executed in case of error occurrence.
-  * @retval None
+  *
   */
 void error_handler(void) {
     printf("[ERROR] via Error_Handler()\n");
@@ -129,8 +129,10 @@ void error_handler(void) {
 
 
 /**
-  * @brief  GPIO Initialization Function
-  * @retval None
+  * @brief  Initialize the MCU GPIO
+  *
+  * Used to flash the Nucleo's USER LED, which is on GPIO Pin 5.
+  *
   */
 void GPIO_init(void) {
     // Enable GPIO port clock
@@ -161,7 +163,7 @@ void GPIO_init(void) {
 /**
   * @brief  Function implementing the GPIO Task thread.
   * @param  argument: Not used
-  * @retval None
+  *
   */
 void start_led_task(void *argument) {
     uint32_t last_tick = 0;
@@ -177,7 +179,7 @@ void start_led_task(void *argument) {
     while (true) {
         // Get the ms timer value and read the button
         uint32_t tick = HAL_GetTick();
-        GPIO_PinState state = HAL_GPIO_ReadPin(BUTTON_GPIO_BANK, BUTTON_GPIO_PIN);
+        GPIO_PinState state = 0; //HAL_GPIO_ReadPin(BUTTON_GPIO_BANK, BUTTON_GPIO_PIN);
 
         // Check for a press or release, and debounce
         if (state == 1 && !pressed) {
@@ -203,6 +205,7 @@ void start_led_task(void *argument) {
         if (tick - last_tick > DEFAULT_TASK_PAUSE) {
             last_tick = tick;
             HAL_GPIO_TogglePin(LED_GPIO_BANK, LED_GPIO_PIN);
+
             if (use_i2c) {
                 if (show_count) {
                     HT16K33_show_value(counter, false);
@@ -223,65 +226,78 @@ void start_led_task(void *argument) {
 /**
   * @brief  Function implementing the Debug Task thread.
   * @param  argument: Not used
-  * @retval None
+  *
   */
 void start_iot_task(void *argument) {
-    uint32_t count = 0;
-
     // Get the Device ID and build number
-    uint8_t buffer[35] = { 0 };
-    mvGetDeviceId(buffer, 34);
-    printf("Dev ID: ");
-    printf((char *)buffer);
-    printf("\n");
-    printf("Build: %i\n", BUILD_NUM);
+    display_device_info();
 
+    // Set up channel notifications
+    http_channel_center_setup();
+
+    // Prep the sensor (if present)
     got_sensor = MCP9808_init();
     if (got_sensor) temp = MCP9808_read_temp();
 
+    // Time trackers
+    uint32_t read_tick = HAL_GetTick();
+    uint32_t kill_time = 0;
+
     // Run the thread's main loop
     while (true) {
+        uint32_t tick = HAL_GetTick();
+
         if (got_sensor) {
             temp = MCP9808_read_temp();
-            if (count % 10 == 0) printf("[DEBUG] Temperature: %.02f\n", temp);
+
+            if (tick - read_tick > SENSOR_READ_PERIOD) {
+                // Read the sensor every 30s
+                read_tick = tick;
+                printf("\n[DEBUG] Temperature: %.02f\n", temp);
+
+                // No channel open? Try and send the temperature
+                if (http_handles.channel == 0) {
+                    http_open_channel();
+                    bool result = http_send_request();
+                    if (!result) request_recv = true;
+                    kill_time = tick;
+                } else {
+                    printf("[ERROR] Channel handle not zero\n");
+                }
+            }
         }
 
-        // Pause per cycle
-        osDelay(DEBUG_TASK_PAUSE);
-        count++;
+        // Use 'kill_time' to force-close an open HTTP channel
+        // if it's been left open too long
+        if (kill_time > 0 && tick - kill_time > CHANNEL_KILL_PERIOD) {
+            request_recv = true;
+        }
+
+        // On receipt of a request (see the ISR), close the channel
+        if (request_recv) {
+            request_recv = false;
+            kill_time = 0;
+            http_close_channel();
+        }
     }
 }
 
 
+/**
+ *  Open a new HTTP channel
+ *
+ */
 void http_open_channel(void) {
-    // Clear any existing interrupt
-    NVIC_ClearPendingIRQ(TIM8_BRK_IRQn);
-
-    // Clear the notification store
-    memset((void *)http_notification_center, 0xFF, sizeof(http_notification_center));
-
-    // Configure a multi-se notification center for network-centric notifications
-    static struct MvNotificationSetup http_notification_setup = {
-        .irq = TIM8_BRK_IRQn,
-        .buffer = (struct MvNotification *)http_notification_center,
-        .buffer_size = sizeof(http_notification_center)
-    };
-
-    // Ask Microvisor to establish the notification center
-    // and confirm that it has accepted the request
-    uint32_t status = mvSetupNotifications(&http_notification_setup, &http_handles.notification);
-    assert(status == MV_STATUS_OKAY);
-
-    // Action interrupt
-    NVIC_EnableIRQ(TIM8_BRK_IRQn);
-    printf("[DEBUG] Channel notification centre handle: %lu\n", (uint32_t)http_handles.notification);
-
     // Set up the HTTP channel's multi-use send and receive buffers
     static volatile uint8_t http_rx_buffer[1536] __attribute__((aligned(512)));
     static volatile uint8_t http_tx_buffer[512] __attribute__((aligned(512)));
-    const char endpoint[] = "";
+    static const char endpoint[] = "";
+
+    // Get the network channel handle.
+    // NOTE This is set in `logging.c` which puts the network in place
+    //      (ie. so the network handle != 0) well in advance of this being called
     http_handles.network = get_net_handle();
-    assert(http_handles.network != 0);
+    assert((http_handles.network != 0) && "[ERROR] Network handle not non-zero");
     printf("[DEBUG] Network handle: %lu\n", (uint32_t)http_handles.network);
 
     // Configure the required data channel
@@ -303,49 +319,70 @@ void http_open_channel(void) {
 
     // Ask Microvisor to open the channel
     // and confirm that it has accepted the request
-    status = mvOpenChannel(&channel_config, &http_handles.channel);
+    uint32_t status = mvOpenChannel(&channel_config, &http_handles.channel);
     if (status == MV_STATUS_OKAY) {
         printf("[DEBUG] HTTP channel open. Handle: %lu\n", (uint32_t)http_handles.channel);
-        assert(http_handles.channel != 0);
+        assert((http_handles.channel != 0) && "[ERROR] Channel handle not non-zero");
     } else {
         printf("[ERROR] HTTP channel closed. Status: %lu\n", status);
     }
 }
 
 
+/**
+ *  Close the currently open HTTP channel.
+ *
+ */
 void http_close_channel(void) {
     // If we have a valid channel handle -- ie. it is non-zero --
     // then ask Microvisor to close it and confirm acceptance of
     // the closure request.
     if (http_handles.channel != 0) {
         uint32_t status = mvCloseChannel(&http_handles.channel);
-        http_handles.channel = 0;
         printf("[DEBUG] HTTP channel closed\n");
-        assert(status == MV_STATUS_OKAY);
+        assert((status == MV_STATUS_OKAY || status == MV_STATUS_CHANNELCLOSED) && "[ERROR] Channel closure");
     }
 
     // Confirm the channel handle has been invalidated by Microvisor
-    assert(http_handles.channel == 0);
+    assert((http_handles.channel == 0) && "[ERROR] Channel handle not zero");
 }
 
 
+/**
+ *  Send a stock HTTP request.
+ *
+ * @returns `true` if the request was accepted by Microvisor, otherwise `false`
+ *
+ */
 bool http_send_request() {
     // Check for a valid channel handle
     if (http_handles.channel != 0) {
         printf("[DEBUG] Sending HTTP request\n");
 
-        // Set up the request -- this is basic
-        const char verb[] = "GET";
-        const char uri[] = "https://jsonplaceholder.typicode.com/todos/1";
-        const char body[] = "";
-        struct MvHttpHeader hdrs[] = {};
+        char* base = malloc(40 * sizeof(char));
+        sprintf(base, "{\"temp\":%.02f}", temp);
+        char body[strlen(base)];
+        strcpy(body, base);
+        free(base);
+
+        // Set up the request
+        const char verb[] = "POST";
+        const char uri[] = "https://twilio-test.free.beeceptor.com/api/v1/data";
+
+        const char header_text[] = "Content-Type: application/json";
+        struct MvHttpHeader header = {
+            .data = (uint8_t *)header_text,
+            .length = strlen(header_text)
+        };
+
+        struct MvHttpHeader headers[] = { header };
         struct MvHttpRequest request_config = {
             .method = (uint8_t *)verb,
             .method_len = strlen(verb),
             .url = (uint8_t *)uri,
             .url_len = strlen(uri),
-            .num_headers = 0,
-            .headers = hdrs,
+            .num_headers = 1,
+            .headers = headers,
             .body = (uint8_t *)body,
             .body_len = strlen(body),
             .timeout_ms = 10000
@@ -353,7 +390,6 @@ bool http_send_request() {
 
         // Issue the request -- and check its status
         uint32_t status = mvSendHttpRequest(http_handles.channel, &request_config);
-
         if (status != MV_STATUS_OKAY) {
             printf("[ERROR] Could not issue request. Status: %lu\n", status);
             return false;
@@ -363,17 +399,28 @@ bool http_send_request() {
         return true;
     }
 
+    // There's no open channel, so open open one now and
+    // try to send again
     http_open_channel();
     return http_send_request();
 }
 
 
+/**
+ *  The HTTP channel notification interrupt handler.
+ *
+ *  This is called by Microvisor -- we need to check for key events
+ *  and extract HTTP response data when it is available.
+ *
+ */
 void TIM8_BRK_IRQHandler(void) {
-
+    // Get the event type
     enum MvEventType event_kind = http_notification_center->event_type;
     printf("[DEBUG] Channel notification center IRQ called for event: %u\n", event_kind);
 
     if (event_kind == MV_EVENTTYPE_CHANNELDATAREADABLE) {
+        // We have received data via the active HTTP channel so establish
+        // an `MvHttpResponseData` record to hold response metadata
         static struct MvHttpResponseData resp_data;
         uint32_t status = mvReadHttpResponseData(http_handles.channel, &resp_data);
         if (status == MV_STATUS_OKAY) {
@@ -382,12 +429,17 @@ void TIM8_BRK_IRQHandler(void) {
             printf("[DEBUG] HTTP response body length: %lu\n", resp_data.body_length);
             printf("[DEBUG] HTTP status code: %lu\n", resp_data.status_code);
 
+            // Check we successfully issued the request (`result` is OK) and
+            // the request was successful (status code 200)
             if (resp_data.result == MV_HTTPRESULT_OK) {
                 if (resp_data.status_code == 200) {
-                    uint8_t buffer[resp_data.body_length];
+                    // Set up a buffer that we'll get Microvisor to write
+                    // the response body into
+                    uint8_t buffer[resp_data.body_length + 1];
+                    memset((void *)buffer, 0x00, resp_data.body_length + 1);
                     status = mvReadHttpResponseBody(http_handles.channel, 0, buffer, resp_data.body_length);
-
                     if (status == MV_STATUS_OKAY) {
+                        // Retrieved the body data successfully so log it
                         printf((char *)buffer);
                         printf("\n");
                     } else {
@@ -399,6 +451,49 @@ void TIM8_BRK_IRQHandler(void) {
             printf("[ERROR] Response data read failed. Status: %lu\n", status);
         }
 
+        // Flag we need to close the HTTP channel when we're
+        // back in the main loop
         request_recv = true;
     }
+}
+
+
+/**
+ * @brief   Configure the channel Notification Center
+ *
+ */
+void http_channel_center_setup(void) {
+    // Clear the notification store
+    memset((void *)http_notification_center, 0xFF, sizeof(http_notification_center));
+
+    // Configure a notification center for network-centric notifications
+    static struct MvNotificationSetup http_notification_setup = {
+        .irq = TIM8_BRK_IRQn,
+        .buffer = (struct MvNotification *)http_notification_center,
+        .buffer_size = sizeof(http_notification_center)
+    };
+
+    // Ask Microvisor to establish the notification center
+    // and confirm that it has accepted the request
+    uint32_t status = mvSetupNotifications(&http_notification_setup, &http_handles.notification);
+    assert((status == MV_STATUS_OKAY) && "[ERROR] Could not set up HTTP channel NC");
+
+    // Start the notification IRQ
+    NVIC_ClearPendingIRQ(TIM8_BRK_IRQn);
+    NVIC_EnableIRQ(TIM8_BRK_IRQn);
+    printf("[DEBUG] Notification center handle: %lu\n", (uint32_t)http_handles.notification);
+}
+
+
+/**
+ * @brief   Show basic device info
+ *
+ */
+void display_device_info(void) {
+    uint8_t buffer[35] = { 0 };
+    mvGetDeviceId(buffer, 34);
+    printf("Dev ID: ");
+    printf((char *)buffer);
+    printf("\n");
+    printf("Build: %i\n", BUILD_NUM);
 }

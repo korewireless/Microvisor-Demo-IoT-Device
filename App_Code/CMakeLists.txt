@@ -3,6 +3,9 @@ cmake_minimum_required(VERSION 3.14)
 set(BUILD_NUMBER "1")
 add_definitions(-DBUILD_NUM=${BUILD_NUMBER})
 
+# Add your Beeceptor URL here
+add_definitions(-DAPI_URL="https://twilio-test.free.beeceptor.com/api/v1/data")
+
 add_executable(mv-iot-device
     main.c
     logging.c
@@ -28,7 +31,6 @@ add_custom_command(OUTPUT EXTRAS
     COMMAND python3 ../../twilio-microvisor-tools/bundler-py/bundler.py mv-iot-device.elf mv-iot-device.zip
     COMMAND rm -f ../../null.d
     COMMAND echo "LATEST BUILD: ${BUILD_NUMBER}"
-
 )
 
 add_custom_target(extras ALL

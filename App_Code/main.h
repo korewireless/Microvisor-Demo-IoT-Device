@@ -16,6 +16,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include <errno.h>
 
@@ -48,6 +49,8 @@ extern "C" {
 #define     DEFAULT_TASK_PAUSE      500
 
 #define     DEBOUNCE_PERIOD         20
+#define     SENSOR_READ_PERIOD      30000
+#define     CHANNEL_KILL_PERIOD     15000
 
 
 /*
@@ -63,7 +66,9 @@ void        GPIO_init(void);
 void        http_open_channel(void);
 void        http_close_channel(void);
 bool        http_send_request();
+void        http_channel_center_setup(void);
 
+void        display_device_info(void);
 
 
 #ifdef __cplusplus

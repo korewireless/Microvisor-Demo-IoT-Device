@@ -18,17 +18,21 @@ git clone --recursive https://github.com/TwilioDevEd/microvisor-iot-demo.git
 
 You will need a Twilio account. [Sign up now if you don’t have one](https://www.twilio.com/try-twilio).
 
+The demo makes use of [Beeceptor](https://beeceptor.com/) as a target for the HTTP `POST` requests it makes.
+
 You will also need the following hardware:
 
-* Twilio Microvisor Nucleo Development Board. These are currently only available to Private Beta program participants. You will need to solder male header pins to the two GPIO banks on the board.
-* HT16K33-based 4-digit, 7-segment display.
-* MCP9808 temperature sensor.
+* A Twilio Microvisor Nucleo Development Board. These are currently only available to Private Beta program participants. You will need to solder male header pins to the two GPIO banks on the board, or at the very least to the connected pins shown in the circuit diagram below.
+* An HT16K33-based 4-digit, 7-segment display, e.g., [Adafruit 0.56" 4-Digit 7-Segment Display w/I2C Backpack](https://www.adafruit.com/product/879).
+* An MCP9808 temperature sensor, e.g., [Adafruit MCP9808 High Accuracy I2C Temperature Sensor Breakout Board](https://www.adafruit.com/product/1782).
 
 ## Hardware Setup
 
+Assemble the following circuit:
+
 ![The Microvisor IOT device demo circuit](./images/circuit.png)
 
-The display and sensor are provided on boards. These include I2C pull-up resistors. If you add the display and/or sensor as raw components, you will need to add pull-ups on the I2C SDA and SCL lines. You only need a single pull-up on each line.
+The display and sensor are shown on breakout boards which include I2C pull-up resistors. If you add the display and sensor as raw components, you will need to add pull-ups on the I2C SDA and SCL lines. You only need a single pull-up on each line.
 
 ## Software Setup
 
@@ -87,7 +91,21 @@ curl https://microvisor.twilio.com/v1/Devices \
 
 This will yield JSON which contains a `device` array — your Microvisor Nucleo Board will be in that array. Use the value of its `sid` field for your `MV_DEVICE_SID` value.
 
-## Build the Code
+## Beeceptor Setup
+
+1. [Visit the Beeceptor website](https://beeceptor.com/).
+1. Enter an endpoint name and click **Create Endpoint**.
+1. Copy the API URL, e.g., `https://my-twilio-test.free.beeceptor.com` and paste it into the source code file `App_Code/CMakeLists.txt` where marked. Make sure you add the path `/api/v1/data`.
+1. In Beeceptor, click **Mocking Rules**.
+1. Click **Create New Rule**.
+1. In the **Mocking Rules** panel:
+    1. Set the **Method** to `POST`.
+    1. Set the **Request condition** to `Request path starts with`.
+    1. Set the path to `/api/v1/data`.
+    1. Click **Save Rule**.
+1. Close the **Mocking Rules** by clicking the **X** in the top right corner of the panel.
+
+## Build the Application Demo Code
 
 Build the sample code with:
 
@@ -97,7 +115,7 @@ cmake -S . -B build/
 cmake --build build --clean-first
 ```
 
-## Deploy the code
+## Deploy the Application
 
 Run:
 

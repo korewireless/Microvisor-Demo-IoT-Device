@@ -57,10 +57,8 @@ extern "C" {
  * PROTOTYPES
  */
 void        system_clock_config(void);
-void        error_handler(void);
 void        start_led_task(void *argument);
 void        start_iot_task(void *argument);
-
 void        GPIO_init(void);
 
 void        http_open_channel(void);
@@ -69,10 +67,9 @@ bool        http_send_request();
 void        http_channel_center_setup(void);
 void        http_process_response(void);
 
-void        display_device_info(void);
-
-void show_error(const char* msg, uint32_t value);
-void format_string(char* out_str, const char* in_str, uint32_t value);
+void        log_device_info(void);
+void        log_error(const char* msg, uint32_t value);
+void        format_string(char* out_str, const char* in_str, uint32_t value);
 
 
 #ifdef __cplusplus

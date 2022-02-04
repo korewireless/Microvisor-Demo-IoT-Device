@@ -51,12 +51,10 @@ struct {
  *  so we mark them as `volatile` to ensure compiler optimization
  *  doesn't render them immutable at runtime
  */
-volatile bool show_count = false;
-volatile bool request_sent = false;
-volatile bool request_recv = false;
-volatile bool close_channel = false;
-volatile bool got_sensor = false;
 volatile bool use_i2c = false;
+volatile bool got_sensor = false;
+volatile bool show_count = false;
+volatile bool request_recv = false;
 volatile uint8_t display_buffer[17] = { 0 };
 volatile uint16_t counter = 0;
 volatile double temp = 0.0;
@@ -117,15 +115,6 @@ uint32_t SECURE_SystemCoreClockUpdate() {
 void system_clock_config(void) {
     SystemCoreClockUpdate();
     HAL_InitTick(TICK_INT_PRIORITY);
-}
-
-
-/**
-  * @brief  This function is executed in case of error occurrence.
-  *
-  */
-void error_handler(void) {
-    printf("[ERROR] via Error_Handler()\n");
 }
 
 
@@ -234,7 +223,7 @@ void start_led_task(void *argument) {
   */
 void start_iot_task(void *argument) {
     // Get the Device ID and build number
-    display_device_info();
+    log_device_info();
 
     // Set up channel notifications
     http_channel_center_setup();
@@ -246,6 +235,7 @@ void start_iot_task(void *argument) {
     // Time trackers
     uint32_t read_tick = 0;
     uint32_t kill_time = 0;
+    bool close_channel = false;
 
     // Run the thread's main loop
     while (true) {
@@ -271,6 +261,7 @@ void start_iot_task(void *argument) {
             }
         }
 
+        // Process a request's response if indicated by the ISR
         if (request_recv) {
             http_process_response();
         }
@@ -281,7 +272,8 @@ void start_iot_task(void *argument) {
             close_channel = true;
         }
 
-        // On receipt of a request (see the ISR), close the channel
+        // Close the channel if asked to do so or
+        // a request yielded a response
         if (close_channel || request_recv) {
             close_channel = false;
             request_recv = false;
@@ -336,7 +328,7 @@ void http_open_channel(void) {
         printf("[DEBUG] HTTP channel open. Handle: %lu\n", (uint32_t)http_handles.channel);
         assert((http_handles.channel != 0) && "[ERROR] Channel handle not non-zero");
     } else {
-        show_error("HTTP channel closed. Status: %lu", status);
+        log_error("HTTP channel closed. Status: %lu", status);
     }
 }
 
@@ -361,6 +353,33 @@ void http_close_channel(void) {
 
 
 /**
+ * @brief   Configure the channel Notification Center
+ *
+ */
+void http_channel_center_setup(void) {
+    // Clear the notification store
+    memset((void *)http_notification_center, 0xFF, sizeof(http_notification_center));
+
+    // Configure a notification center for network-centric notifications
+    static struct MvNotificationSetup http_notification_setup = {
+        .irq = TIM8_BRK_IRQn,
+        .buffer = (struct MvNotification *)http_notification_center,
+        .buffer_size = sizeof(http_notification_center)
+    };
+
+    // Ask Microvisor to establish the notification center
+    // and confirm that it has accepted the request
+    uint32_t status = mvSetupNotifications(&http_notification_setup, &http_handles.notification);
+    assert((status == MV_STATUS_OKAY) && "[ERROR] Could not set up HTTP channel NC");
+
+    // Start the notification IRQ
+    NVIC_ClearPendingIRQ(TIM8_BRK_IRQn);
+    NVIC_EnableIRQ(TIM8_BRK_IRQn);
+    printf("[DEBUG] Notification center handle: %lu\n", (uint32_t)http_handles.notification);
+}
+
+
+/**
  *  Send a stock HTTP request.
  *
  * @returns `true` if the request was accepted by Microvisor, otherwise `false`
@@ -379,8 +398,9 @@ bool http_send_request() {
 
         // Set up the request
         const char verb[] = "POST";
-        const char uri[] = "https://twilio-test.free.beeceptor.com/api/v1/data";
+        const char uri[] = API_URL;
 
+        // Add a header
         const char header_text[] = "Content-Type: application/json";
         struct MvHttpHeader header = {
             .data = (uint8_t *)header_text,
@@ -403,7 +423,7 @@ bool http_send_request() {
         // Issue the request -- and check its status
         uint32_t status = mvSendHttpRequest(http_handles.channel, &request_config);
         if (status != MV_STATUS_OKAY) {
-            show_error("Could not issue request. Status: %lu", status);
+            log_error("Could not issue request. Status: %lu", status);
             return false;
         }
 
@@ -440,33 +460,6 @@ void TIM8_BRK_IRQHandler(void) {
 
 
 /**
- * @brief   Configure the channel Notification Center
- *
- */
-void http_channel_center_setup(void) {
-    // Clear the notification store
-    memset((void *)http_notification_center, 0xFF, sizeof(http_notification_center));
-
-    // Configure a notification center for network-centric notifications
-    static struct MvNotificationSetup http_notification_setup = {
-        .irq = TIM8_BRK_IRQn,
-        .buffer = (struct MvNotification *)http_notification_center,
-        .buffer_size = sizeof(http_notification_center)
-    };
-
-    // Ask Microvisor to establish the notification center
-    // and confirm that it has accepted the request
-    uint32_t status = mvSetupNotifications(&http_notification_setup, &http_handles.notification);
-    assert((status == MV_STATUS_OKAY) && "[ERROR] Could not set up HTTP channel NC");
-
-    // Start the notification IRQ
-    NVIC_ClearPendingIRQ(TIM8_BRK_IRQn);
-    NVIC_EnableIRQ(TIM8_BRK_IRQn);
-    printf("[DEBUG] Notification center handle: %lu\n", (uint32_t)http_handles.notification);
-}
-
-
-/**
  * @brief Process HTTP response data
  *
  */
@@ -492,16 +485,16 @@ void http_process_response(void) {
                     printf((char *)buffer);
                     printf("\n");
                 } else {
-                    show_error("HTTP response body read status %lu", status);
+                    log_error("HTTP response body read status %lu", status);
                 }
             } else {
-                show_error("HTTP status code: %lu", resp_data.status_code);
+                log_error("HTTP status code: %lu", resp_data.status_code);
             }
         } else {
-            show_error("Request failed. Status: %lu", (uint32_t)resp_data.result);
+            log_error("Request failed. Status: %lu", (uint32_t)resp_data.result);
         }
     } else {
-        show_error("Response data read failed. Status: %lu", status);
+        log_error("Response data read failed. Status: %lu", status);
     }
 }
 
@@ -510,7 +503,7 @@ void http_process_response(void) {
  * @brief   Show basic device info
  *
  */
-void display_device_info(void) {
+void log_device_info(void) {
     uint8_t buffer[35] = { 0 };
     mvGetDeviceId(buffer, 34);
     printf("Dev ID: ");
@@ -520,15 +513,37 @@ void display_device_info(void) {
 }
 
 
-void show_error(const char* msg, uint32_t value) {
+/**
+ * @brief   Log an error message
+ * @param   msg:    A pointer to a message string containing one long unsigned int marker.
+ * @param   value:  A 32-bit unsigned int to be interpolated into `msg`.
+ *
+ */
+void log_error(const char* msg, uint32_t value) {
     char print_str[80] = {0};
     strcpy(print_str, "[ERROR] ");
-    format_string(&print_str[8], msg, value);
+
+    if (strlen(msg) > 61) {
+        char trunc_str[61] = {0};
+        strncpy(trunc_str, msg, 61);
+        sprintf(&print_str[8], trunc_str, value);
+    } else {
+        sprintf(&print_str[8], msg, value);
+    }
+
+    // Output the final string
     printf(print_str);
     printf("\n");
 }
 
 
+/**
+ * @brief   Interpolate a 32-bit unsigned int into a string
+ * @param   out_str:    A pointer to storage for the formatted string. 80 chars max.
+ * @param   in_str:     A pointer to a message string containing one long unsigned int marker.
+ * @param   value:      A 32-bit unsigned int to be interpolated into `msg`.
+ *
+ */
 void format_string(char* out_str, const char* in_str, uint32_t value) {
     char* base = malloc(80 * sizeof(char));
     sprintf(base, in_str, value);

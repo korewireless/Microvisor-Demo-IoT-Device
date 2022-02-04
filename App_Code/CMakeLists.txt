@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.14)
 set(BUILD_NUMBER "1")
 add_definitions(-DBUILD_NUM=${BUILD_NUMBER})
 
-# Add your Beeceptor URL here
+# Add your Beeceptor URL and path (/api/v1/data) here
 add_definitions(-DAPI_URL="https://twilio-test.free.beeceptor.com/api/v1/data")
 
 add_executable(mv-iot-device

@@ -54,6 +54,7 @@ struct {
 volatile bool show_count = false;
 volatile bool request_sent = false;
 volatile bool request_recv = false;
+volatile bool close_channel = false;
 volatile bool got_sensor = false;
 volatile bool use_i2c = false;
 volatile uint8_t display_buffer[17] = { 0 };
@@ -262,7 +263,7 @@ void start_iot_task(void *argument) {
                 if (http_handles.channel == 0) {
                     http_open_channel();
                     bool result = http_send_request();
-                    if (!result) request_recv = true;
+                    if (!result) close_channel = true;
                     kill_time = tick;
                 } else {
                     printf("[ERROR] Channel handle not zero\n");
@@ -270,14 +271,19 @@ void start_iot_task(void *argument) {
             }
         }
 
+        if (request_recv) {
+            http_process_response();
+        }
+
         // Use 'kill_time' to force-close an open HTTP channel
         // if it's been left open too long
         if (kill_time > 0 && tick - kill_time > CHANNEL_KILL_PERIOD) {
-            request_recv = true;
+            close_channel = true;
         }
 
         // On receipt of a request (see the ISR), close the channel
-        if (request_recv) {
+        if (close_channel || request_recv) {
+            close_channel = false;
             request_recv = false;
             kill_time = 0;
             http_close_channel();
@@ -330,7 +336,7 @@ void http_open_channel(void) {
         printf("[DEBUG] HTTP channel open. Handle: %lu\n", (uint32_t)http_handles.channel);
         assert((http_handles.channel != 0) && "[ERROR] Channel handle not non-zero");
     } else {
-        printf("[ERROR] HTTP channel closed. Status: %lu\n", status);
+        show_error("HTTP channel closed. Status: %lu", status);
     }
 }
 
@@ -397,7 +403,7 @@ bool http_send_request() {
         // Issue the request -- and check its status
         uint32_t status = mvSendHttpRequest(http_handles.channel, &request_config);
         if (status != MV_STATUS_OKAY) {
-            printf("[ERROR] Could not issue request. Status: %lu\n", status);
+            show_error("Could not issue request. Status: %lu", status);
             return false;
         }
 
@@ -425,40 +431,9 @@ void TIM8_BRK_IRQHandler(void) {
     printf("[DEBUG] Channel notification center IRQ called for event: %u\n", event_kind);
 
     if (event_kind == MV_EVENTTYPE_CHANNELDATAREADABLE) {
-        // We have received data via the active HTTP channel so establish
-        // an `MvHttpResponseData` record to hold response metadata
-        static struct MvHttpResponseData resp_data;
-        uint32_t status = mvReadHttpResponseData(http_handles.channel, &resp_data);
-        if (status == MV_STATUS_OKAY) {
-            printf("[DEBUG] HTTP response result: %u\n", resp_data.result);
-            printf("[DEBUG] HTTP response header count: %lu\n", resp_data.num_headers);
-            printf("[DEBUG] HTTP response body length: %lu\n", resp_data.body_length);
-            printf("[DEBUG] HTTP status code: %lu\n", resp_data.status_code);
-
-            // Check we successfully issued the request (`result` is OK) and
-            // the request was successful (status code 200)
-            if (resp_data.result == MV_HTTPRESULT_OK) {
-                if (resp_data.status_code == 200) {
-                    // Set up a buffer that we'll get Microvisor to write
-                    // the response body into
-                    uint8_t buffer[resp_data.body_length + 1];
-                    memset((void *)buffer, 0x00, resp_data.body_length + 1);
-                    status = mvReadHttpResponseBody(http_handles.channel, 0, buffer, resp_data.body_length);
-                    if (status == MV_STATUS_OKAY) {
-                        // Retrieved the body data successfully so log it
-                        printf((char *)buffer);
-                        printf("\n");
-                    } else {
-                        printf("[ERROR] HTTP response body read status %lu\n", status);
-                    }
-                }
-            }
-        } else {
-            printf("[ERROR] Response data read failed. Status: %lu\n", status);
-        }
-
-        // Flag we need to close the HTTP channel when we're
-        // back in the main loop
+        // Flag we need to access received data and to close the HTTP channel
+        // when we're back in the main loop. This lets us exit the ISR quickly.
+        // We should not make Microvisor System Calls in the ISR.
         request_recv = true;
     }
 }
@@ -492,6 +467,46 @@ void http_channel_center_setup(void) {
 
 
 /**
+ * @brief Process HTTP response data
+ *
+ */
+void http_process_response(void) {
+    // We have received data via the active HTTP channel so establish
+    // an `MvHttpResponseData` record to hold response metadata
+    struct MvHttpResponseData resp_data;
+    uint32_t status = mvReadHttpResponseData(http_handles.channel, &resp_data);
+    if (status == MV_STATUS_OKAY) {
+        // Check we successfully issued the request (`result` is OK) and
+        // the request was successful (status code 200)
+        if (resp_data.result == MV_HTTPRESULT_OK) {
+            if (resp_data.status_code == 200) {
+                // Set up a buffer that we'll get Microvisor to write
+                // the response body into
+                uint8_t buffer[resp_data.body_length + 1];
+                memset((void *)buffer, 0x00, resp_data.body_length + 1);
+                status = mvReadHttpResponseBody(http_handles.channel, 0, buffer, resp_data.body_length);
+                if (status == MV_STATUS_OKAY) {
+                    // Retrieved the body data successfully so log it
+                    printf("[DEBUG] HTTP response header count: %lu\n", resp_data.num_headers);
+                    printf("[DEBUG] HTTP response body length: %lu\n", resp_data.body_length);
+                    printf((char *)buffer);
+                    printf("\n");
+                } else {
+                    show_error("HTTP response body read status %lu", status);
+                }
+            } else {
+                show_error("HTTP status code: %lu", resp_data.status_code);
+            }
+        } else {
+            show_error("Request failed. Status: %lu", (uint32_t)resp_data.result);
+        }
+    } else {
+        show_error("Response data read failed. Status: %lu", status);
+    }
+}
+
+
+/**
  * @brief   Show basic device info
  *
  */
@@ -502,4 +517,21 @@ void display_device_info(void) {
     printf((char *)buffer);
     printf("\n");
     printf("Build: %i\n", BUILD_NUM);
+}
+
+
+void show_error(const char* msg, uint32_t value) {
+    char print_str[80] = {0};
+    strcpy(print_str, "[ERROR] ");
+    format_string(&print_str[8], msg, value);
+    printf(print_str);
+    printf("\n");
+}
+
+
+void format_string(char* out_str, const char* in_str, uint32_t value) {
+    char* base = malloc(80 * sizeof(char));
+    sprintf(base, in_str, value);
+    strcpy(out_str, in_str);
+    free(base);
 }

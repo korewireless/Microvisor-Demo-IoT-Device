@@ -67,8 +67,12 @@ void        http_open_channel(void);
 void        http_close_channel(void);
 bool        http_send_request();
 void        http_channel_center_setup(void);
+void        http_process_response(void);
 
 void        display_device_info(void);
+
+void show_error(const char* msg, uint32_t value);
+void format_string(char* out_str, const char* in_str, uint32_t value);
 
 
 #ifdef __cplusplus

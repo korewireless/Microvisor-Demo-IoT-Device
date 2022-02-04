@@ -1,4 +1,25 @@
-#!/bin/zsh
+#!/usr/bin/env bash
+
+show_help() {
+    echo -e "Usage:\n"
+    echo -e "  deploy [-l] [-h]\n"
+    echo -e "Options:\n"
+    echo "  -l / --log      After deployment, start log streaming"
+    echo "  -h / --help     Show this help screen"
+    echo
+}
+
+do_log=0
+
+for arg in "$@"; do
+    check_arg=${arg,,}
+    if [[ "$check_arg" = "--log" || "$check_arg" = "-l" ]]; then
+        do_log=1
+    elif [[ "$check_arg" = "--help" || "$check_arg" = "-h" ]]; then
+        show_help
+        exit 0
+    fi
+done
 
 upload_action=$(curl -X POST https://microvisor-upload.twilio.com/v1/Apps -H "Content-Type: multipart/form-data" -u ${TWILIO_API_KEY}:${TWILIO_API_SECRET} -s -F File=@./build/App_Code/mv-iot-device.zip)
 
@@ -15,7 +36,7 @@ else
     if [[ "${up_date}" != "null" ]]; then
         echo "Updated device ${MV_DEVICE_SID} @ ${up_date}"
 
-        if [[ $1 == "-l" ]]; then
+        if [[ $do_log -eq 1 ]]; then
             echo "Logging from ${MV_DEVICE_SID}..."
             twilio microvisor:logs:stream ${MV_DEVICE_SID}
         fi

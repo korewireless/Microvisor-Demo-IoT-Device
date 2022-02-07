@@ -13,7 +13,6 @@
  *  GLOBALS
  */
 
-
 // This is the FreeRTOS thread task that flashed the USER LED
 // and operates the display
 osThreadId_t LEDTask;
@@ -32,10 +31,8 @@ const osThreadAttr_t iot_task_attributes = {
     .priority = (osPriority_t) osPriorityNormal
 };
 
-
 // I2C-related values
 I2C_HandleTypeDef i2c;
-
 
 // Central store for Microvisor resource handles used in this code.
 // See `https://www.twilio.com/docs/iot/microvisor/syscalls#http_handles`
@@ -44,7 +41,6 @@ struct {
     MvNetworkHandle      network;
     MvChannelHandle      channel;
 } http_handles = { 0, 0, 0 };
-
 
 /**
  *  Theses variables may be changed by interrupt handler code,
@@ -62,7 +58,6 @@ volatile double temp = 0.0;
 // Central store for notification records.
 // Holds one record at a time -- each record is 16 bytes.
 volatile struct MvNotification http_notification_center[16];
-
 
 
 /**
@@ -99,7 +94,7 @@ int main(void) {
 
 /**
   * @brief  Get the MV clock value
-  * @retval The clock value
+  * @retval The clock value.
   */
 uint32_t SECURE_SystemCoreClockUpdate() {
     uint32_t clock = 0;
@@ -109,8 +104,7 @@ uint32_t SECURE_SystemCoreClockUpdate() {
 
 
 /**
-  * @brief  System clock configuration
-  *
+  * @brief  System clock configuration.
   */
 void system_clock_config(void) {
     SystemCoreClockUpdate();
@@ -121,7 +115,7 @@ void system_clock_config(void) {
 /**
   * @brief  Initialize the MCU GPIO
   *
-  * Used to flash the Nucleo's USER LED, which is on GPIO Pin 5.
+  * Used to flash the Nucleo's USER LED, which is on GPIO Pin PA5.
   *
   */
 void GPIO_init(void) {
@@ -151,8 +145,9 @@ void GPIO_init(void) {
 
 
 /**
-  * @brief  Function implementing the GPIO Task thread.
-  * @param  argument: Not used
+  * @brief  Function implementing the display task thread.
+  *
+  * @param  argument: Not used.
   *
   */
 void start_led_task(void *argument) {
@@ -166,6 +161,7 @@ void start_led_task(void *argument) {
     // Set up the display if it's available
     if (use_i2c) HT16K33_init();
 
+    // The task's main loop
     while (true) {
         // Get the ms timer value and read the button
         uint32_t tick = HAL_GetTick();
@@ -218,7 +214,8 @@ void start_led_task(void *argument) {
 
 /**
   * @brief  Function implementing the Debug Task thread.
-  * @param  argument: Not used
+  *
+  * @param  argument: Not used.
   *
   */
 void start_iot_task(void *argument) {
@@ -288,8 +285,7 @@ void start_iot_task(void *argument) {
 
 
 /**
- *  Open a new HTTP channel
- *
+ *  @brief Open a new HTTP channel.
  */
 void http_open_channel(void) {
     // Set up the HTTP channel's multi-use send and receive buffers
@@ -334,8 +330,7 @@ void http_open_channel(void) {
 
 
 /**
- *  Close the currently open HTTP channel.
- *
+ *  @brief Close the currently open HTTP channel.
  */
 void http_close_channel(void) {
     // If we have a valid channel handle -- ie. it is non-zero --
@@ -353,7 +348,7 @@ void http_close_channel(void) {
 
 
 /**
- * @brief   Configure the channel Notification Center
+ * @brief Configure the channel Notification Center.
  *
  */
 void http_channel_center_setup(void) {
@@ -422,13 +417,14 @@ bool http_send_request() {
 
         // Issue the request -- and check its status
         uint32_t status = mvSendHttpRequest(http_handles.channel, &request_config);
-        if (status != MV_STATUS_OKAY) {
-            log_error("Could not issue request. Status: %lu", status);
-            return false;
+        if (status == MV_STATUS_OKAY) {
+            printf("[DEBUG] Request sent to Twilio\n");
+            return true;
         }
 
-        printf("[DEBUG] Request sent to Twilio\n");
-        return true;
+        // Report send failure
+        log_error("Could not issue request. Status: %lu", status);
+        return false;
     }
 
     // There's no open channel, so open open one now and
@@ -439,11 +435,10 @@ bool http_send_request() {
 
 
 /**
- *  The HTTP channel notification interrupt handler.
+ *  @brief The HTTP channel notification interrupt handler.
  *
  *  This is called by Microvisor -- we need to check for key events
  *  and extract HTTP response data when it is available.
- *
  */
 void TIM8_BRK_IRQHandler(void) {
     // Get the event type
@@ -460,8 +455,7 @@ void TIM8_BRK_IRQHandler(void) {
 
 
 /**
- * @brief Process HTTP response data
- *
+ * @brief Process HTTP response data.
  */
 void http_process_response(void) {
     // We have received data via the active HTTP channel so establish
@@ -482,8 +476,7 @@ void http_process_response(void) {
                     // Retrieved the body data successfully so log it
                     printf("[DEBUG] HTTP response header count: %lu\n", resp_data.num_headers);
                     printf("[DEBUG] HTTP response body length: %lu\n", resp_data.body_length);
-                    printf((char *)buffer);
-                    printf("\n");
+                    printf("%s\n", buffer);
                 } else {
                     log_error("HTTP response body read status %lu", status);
                 }
@@ -500,15 +493,13 @@ void http_process_response(void) {
 
 
 /**
- * @brief   Show basic device info
+ * @brief   Show basic device info.
  *
  */
 void log_device_info(void) {
     uint8_t buffer[35] = { 0 };
     mvGetDeviceId(buffer, 34);
-    printf("Dev ID: ");
-    printf((char *)buffer);
-    printf("\n");
+    printf("Dev ID: %s\n", buffer);
     printf("Build: %i\n", BUILD_NUM);
 }
 

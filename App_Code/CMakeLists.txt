@@ -1,12 +1,12 @@
 cmake_minimum_required(VERSION 3.14)
 
-set(BUILD_NUMBER "1")
-add_definitions(-DBUILD_NUM=${BUILD_NUMBER})
-
 # Add your Beeceptor URL and path (/api/v1/data) here
-add_definitions(-DAPI_URL="https://twilio-test.free.beeceptor.com/api/v1/data")
+add_compile_definitions(API_URL="https://twilio-test.free.beeceptor.com/api/v1/data")
 
-add_executable(mv-iot-device
+set(BUILD_NUMBER "1")
+add_compile_definitions(BUILD_NUM=${BUILD_NUMBER})
+
+add_executable(mv-iot-device-demo
     main.c
     logging.c
     i2c.c
@@ -15,7 +15,7 @@ add_executable(mv-iot-device
     stm32u5xx_hal_timebase_tim_template.c
 )
 
-target_link_libraries(mv-iot-device LINK_PUBLIC
+target_link_libraries(mv-iot-device-demo LINK_PUBLIC
     ST_Code
     twilio-microvisor-hal-stm32u5
     FreeRTOS)
@@ -23,12 +23,12 @@ target_link_libraries(mv-iot-device LINK_PUBLIC
 # Optional informational and additional format generation
 # including Bundle output
 add_custom_command(OUTPUT EXTRAS
-    DEPENDS mv-iot-device
-    COMMAND cp "mv-iot-device" "mv-iot-device.elf"
-    COMMAND ${CMAKE_SIZE} --format=berkeley "mv-iot-device"
-    COMMAND ${CMAKE_OBJDUMP} -h -S "mv-iot-device.elf" > "mv-iot-device.list"
-    COMMAND ${CMAKE_OBJCOPY} -O binary "mv-iot-device.elf" "mv-iot-device.bin"
-    COMMAND python3 ../../twilio-microvisor-tools/bundler-py/bundler.py mv-iot-device.elf mv-iot-device.zip
+    DEPENDS mv-iot-device-demo
+    COMMAND cp "mv-iot-device-demo" "mv-iot-device-demo.elf"
+    COMMAND ${CMAKE_SIZE} --format=berkeley "mv-iot-device-demo"
+    COMMAND ${CMAKE_OBJDUMP} -h -S "mv-iot-device-demo.elf" > "mv-iot-device-demo.list"
+    COMMAND ${CMAKE_OBJCOPY} -O binary "mv-iot-device-demo.elf" "mv-iot-device-demo.bin"
+    COMMAND python3 ../../twilio-microvisor-tools/bundler-py/bundler.py mv-iot-device-demo.elf mv-iot-device-demo.zip
     COMMAND rm -f ../../null.d
     COMMAND echo "LATEST BUILD: ${BUILD_NUMBER}"
 )

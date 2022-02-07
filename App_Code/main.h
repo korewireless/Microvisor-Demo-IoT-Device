@@ -20,10 +20,12 @@
 #include <unistd.h>
 #include <errno.h>
 
+// Microvisor includes
 #include "stm32u5xx_hal.h"
 #include "cmsis_os.h"
 #include "mv_syscalls.h"
 
+// App includes
 #include "logging.h"
 #include "ht16k33.h"
 #include "i2c.h"
@@ -57,14 +59,14 @@ extern "C" {
  * PROTOTYPES
  */
 void        system_clock_config(void);
+void        GPIO_init(void);
 void        start_led_task(void *argument);
 void        start_iot_task(void *argument);
-void        GPIO_init(void);
 
+void        http_channel_center_setup(void);
 void        http_open_channel(void);
 void        http_close_channel(void);
 bool        http_send_request();
-void        http_channel_center_setup(void);
 void        http_process_response(void);
 
 void        log_device_info(void);

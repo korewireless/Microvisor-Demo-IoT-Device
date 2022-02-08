@@ -35,7 +35,7 @@ void I2C_init() {
     }
 
     // Check peripheral readiness
-    use_i2c = I2C_check(HT16K33_ADDR);
+    use_i2c = I2C_check(HT16K33_I2C_ADDR);
 }
 
 

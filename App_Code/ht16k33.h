@@ -14,7 +14,7 @@
  * CONSTANTS
  */
 // Display I2C address
-#define     HT16K33_ADDR            0x70
+#define     HT16K33_I2C_ADDR            0x70
 
 
 /*

@@ -10,14 +10,13 @@
 
 
 extern      I2C_HandleTypeDef    i2c;
-extern      uint8_t              display_buffer[17];
-
 
 // The hex character set
 char        CHARSET[19] = "\x3F\x06\x5B\x4F\x66\x6D\x7D\x07\x7F\x6F\x5F\x7C\x58\x5E\x7B\x71\x40\x63";
 
 // Map display digits to bytes in the buffer
 uint8_t     POS[4] = {0, 2, 6, 8};
+uint8_t     display_buffer[17];
 
 
 /*
@@ -42,7 +41,7 @@ void HT16K33_init() {
         - cmd: The single-byte command.
  */
 void HT16K33_write_cmd(uint8_t cmd) {
-    HAL_I2C_Master_Transmit(&i2c, HT16K33_ADDR << 1, &cmd, 1, 100);
+    HAL_I2C_Master_Transmit(&i2c, HT16K33_I2C_ADDR << 1, &cmd, 1, 100);
 }
 
 
@@ -68,7 +67,7 @@ void HT16K33_draw() {
     memcpy(tx_buffer + 1, display_buffer, 16);
 
     // Display the buffer and flash the LED
-    HAL_I2C_Master_Transmit(&i2c, HT16K33_ADDR << 1, tx_buffer, sizeof(tx_buffer), 100);
+    HAL_I2C_Master_Transmit(&i2c, HT16K33_I2C_ADDR << 1, tx_buffer, sizeof(tx_buffer), 100);
 }
 
 

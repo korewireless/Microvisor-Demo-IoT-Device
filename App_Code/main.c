@@ -51,7 +51,6 @@ volatile bool use_i2c = false;
 volatile bool got_sensor = false;
 volatile bool show_count = false;
 volatile bool request_recv = false;
-volatile uint8_t display_buffer[17] = { 0 };
 volatile uint16_t counter = 0;
 volatile double temp = 0.0;
 
@@ -158,7 +157,7 @@ void start_led_task(void *argument) {
     bool pressed = false;
 
     // Set up the display if it's available
-    if (use_i2c) HT16K33_init();
+    if (use_i2c) HT16K33_init(&i2c);
 
     // The task's main loop
     while (true) {

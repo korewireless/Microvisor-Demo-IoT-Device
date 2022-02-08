@@ -61,7 +61,7 @@ volatile struct MvNotification http_notification_center[16];
 
 
 /**
- * @brief  The application entry point.
+ * @brief The application entry point.
  */
 int main(void) {
     // Reset of all peripherals, Initializes the Flash interface and the Systick.
@@ -93,8 +93,9 @@ int main(void) {
 
 
 /**
-  * @brief  Get the MV clock value
-  * @retval The clock value.
+  * @brief Get the MV clock value.
+  *
+  * @returns The clock value.
   */
 uint32_t SECURE_SystemCoreClockUpdate() {
     uint32_t clock = 0;
@@ -104,7 +105,7 @@ uint32_t SECURE_SystemCoreClockUpdate() {
 
 
 /**
-  * @brief  System clock configuration.
+  * @brief System clock configuration.
   */
 void system_clock_config(void) {
     SystemCoreClockUpdate();
@@ -113,10 +114,9 @@ void system_clock_config(void) {
 
 
 /**
-  * @brief  Initialize the MCU GPIO
+  * @brief Initialize the MCU GPIO
   *
   * Used to flash the Nucleo's USER LED, which is on GPIO Pin PA5.
-  *
   */
 void GPIO_init(void) {
     // Enable GPIO port clock
@@ -145,10 +145,9 @@ void GPIO_init(void) {
 
 
 /**
-  * @brief  Function implementing the display task thread.
+  * @brief Function implementing the display task thread.
   *
-  * @param  argument: Not used.
-  *
+  * @param argument: Not used.
   */
 void start_led_task(void *argument) {
     uint32_t last_tick = 0;
@@ -213,10 +212,9 @@ void start_led_task(void *argument) {
 
 
 /**
-  * @brief  Function implementing the Debug Task thread.
+  * @brief Function implementing the Debug Task thread.
   *
-  * @param  argument: Not used.
-  *
+  * @param argument: Not used.
   */
 void start_iot_task(void *argument) {
     // Get the Device ID and build number
@@ -349,7 +347,6 @@ void http_close_channel(void) {
 
 /**
  * @brief Configure the channel Notification Center.
- *
  */
 void http_channel_center_setup(void) {
     // Clear the notification store
@@ -375,10 +372,9 @@ void http_channel_center_setup(void) {
 
 
 /**
- *  Send a stock HTTP request.
+ * @brief Send a stock HTTP request.
  *
  * @returns `true` if the request was accepted by Microvisor, otherwise `false`
- *
  */
 bool http_send_request() {
     // Check for a valid channel handle
@@ -493,22 +489,20 @@ void http_process_response(void) {
 
 
 /**
- * @brief   Show basic device info.
- *
+ * @brief Show basic device info.
  */
 void log_device_info(void) {
     uint8_t buffer[35] = { 0 };
     mvGetDeviceId(buffer, 34);
-    printf("Dev ID: %s\n", buffer);
-    printf("Build: %i\n", BUILD_NUM);
+    printf("Device: %s\n   App: %s\n Build: %i\n", buffer, APP_NAME, BUILD_NUM);
 }
 
 
 /**
- * @brief   Log an error message
- * @param   msg:    A pointer to a message string containing one long unsigned int marker.
- * @param   value:  A 32-bit unsigned int to be interpolated into `msg`.
+ * @brief Log an error message
  *
+ * @param msg:   A pointer to a message string containing one long unsigned int marker.
+ * @param value: A 32-bit unsigned int to be interpolated into `msg`.
  */
 void log_error(const char* msg, uint32_t value) {
     char print_str[80] = {0};
@@ -529,11 +523,11 @@ void log_error(const char* msg, uint32_t value) {
 
 
 /**
- * @brief   Interpolate a 32-bit unsigned int into a string
- * @param   out_str:    A pointer to storage for the formatted string. 80 chars max.
- * @param   in_str:     A pointer to a message string containing one long unsigned int marker.
- * @param   value:      A 32-bit unsigned int to be interpolated into `msg`.
+ * @brief Interpolate a 32-bit unsigned int into a string
  *
+ * @param out_str: A pointer to storage for the formatted string. 80 chars max.
+ * @param in_str:  A pointer to a message string containing one long unsigned int marker.
+ * @param value:   A 32-bit unsigned int to be interpolated into `msg`.
  */
 void format_string(char* out_str, const char* in_str, uint32_t value) {
     char* base = malloc(80 * sizeof(char));

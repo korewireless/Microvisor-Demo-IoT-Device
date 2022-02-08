@@ -14,7 +14,7 @@ This repo makes uses of git submodules, some of which are nested within other su
 git clone https://github.com/TwilioDevEd/microvisor-iot-device-demo.git
 ```
 
-and then
+and then:
 
 ```bash
 cd microvisor-iot-device-demo
@@ -127,14 +127,16 @@ cmake --build build --clean-first
 Run:
 
 ```bash
-./deploy.sh
+./deploy.sh --log
 ```
 
 This will upload the build and stage it for deployment to your device. If you encounter errors, please check your stored Twilio credentials.
 
-## View log output
+The `--log` flag initiates log-streaming.
 
-You can start log streaming with this command:
+## View Log Output
+
+You can start log streaming separately — for example, in a second terminal window — with this command:
 
 ```bash
 twilio microvisor:logs:stream ${MV_DEVICE_SID}

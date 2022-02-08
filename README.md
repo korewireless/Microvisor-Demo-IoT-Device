@@ -11,7 +11,14 @@ The application code files can be found in the [`App_Code/`](App_Code/) director
 This repo makes uses of git submodules, some of which are nested within other submodules. To clone the repo, run:
 
 ```bash
-git clone --recursive https://github.com/TwilioDevEd/microvisor-iot-demo.git
+git clone https://github.com/TwilioDevEd/microvisor-iot-device-demo.git
+```
+
+and then
+
+```bash
+cd microvisor-iot-device-demo
+git submodule update --init --recursive
 ```
 
 ## Requirements

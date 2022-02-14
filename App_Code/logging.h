@@ -14,7 +14,7 @@ extern "C" {
 void log_open_channel(void);
 void log_close_channel(void);
 MvNetworkHandle get_net_handle();
-void server_log(const char *str);
+// void server_log(const char *str);
 
 
 #ifdef __cplusplus

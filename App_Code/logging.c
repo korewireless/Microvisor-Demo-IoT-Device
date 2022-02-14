@@ -105,8 +105,8 @@ void TIM1_BRK_IRQHandler(void) {
 
 }
 
-void server_log(const char *str)
-{
+
+void server_log(const char *str) {
     if (log_handles.channel == 0) {
         log_open_channel();
     }
@@ -119,9 +119,10 @@ void server_log(const char *str)
 }
 
 
-// wire up stdio syscall, so printf works
-int _write(int file, char *ptr, int len)
-{
+/**
+ * Wire up stdio syscall, so printf*() works
+ */
+int _write(int file, char *ptr, int len) {
     if (file != STDOUT_FILENO) {
         errno = EBADF;
         return -1;

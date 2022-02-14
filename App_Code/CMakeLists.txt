@@ -2,16 +2,17 @@ cmake_minimum_required(VERSION 3.14)
 
 # Add your Beeceptor URL and path (/api/v1/data) here
 add_compile_definitions(API_URL="https://twilio-test.free.beeceptor.com/api/v1/data")
-add_compile_definitions(APP_NAME="Microvisor IoT Device Demo")
 
 set(BUILD_NUMBER "1")
 add_compile_definitions(BUILD_NUM=${BUILD_NUMBER})
+add_compile_definitions(APP_NAME="Microvisor IoT Device Demo")
 
 add_executable(mv-iot-device-demo
     main.c
     logging.c
     i2c.c
     ht16k33.c
+    http.c
     mcp9808.c
     stm32u5xx_hal_timebase_tim_template.c
 )

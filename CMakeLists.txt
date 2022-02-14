@@ -72,6 +72,6 @@ target_include_directories(FreeRTOS PUBLIC
     FreeRTOS-Kernel/portable/GCC/ARM_CM33_NTZ/non_secure
 )
 
-add_subdirectory(App_Code)
+add_subdirectory(App)
 
 unset(CONFIG_DIRECTORY)

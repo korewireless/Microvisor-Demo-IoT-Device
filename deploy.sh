@@ -13,7 +13,7 @@
 
 # GLOBALS
 do_log=0
-zip_path="./build/App_Code/mv-iot-device-demo.zip"
+zip_path="./build/App/mv-iot-device-demo.zip"
 
 # FUNCTIONS
 show_help() {

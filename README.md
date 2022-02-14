@@ -4,7 +4,7 @@ This repo provides a basic demonstration of a sample IoT device application. It 
 
 The application is based on the [FreeRTOS](https://freertos.org/) real-time operating system and which will run on the “non-secure” side of Microvisor. FreeRTOS is included as a submodule.
 
-The application code files can be found in the [`App_Code/`](App_Code/) directory. The [`ST_Code/`](ST_Code/) directory contains required components that are not part of Twilio Microvisor STM32U5 HAL, which this sample accesses as a submodule. The `FreeRTOSConfig.h` and `stm32u5xx_hal_conf.h` configuration files are located in the [config/](config/) directory.
+The application code files can be found in the [`App/`](App/) directory. The [`ST_Code/`](ST_Code/) directory contains required components that are not part of Twilio Microvisor STM32U5 HAL, which this sample accesses as a submodule. The `FreeRTOSConfig.h` and `stm32u5xx_hal_conf.h` configuration files are located in the [config/](config/) directory.
 
 ## Cloning the Repo
 
@@ -102,7 +102,7 @@ This will yield JSON which contains a `device` array — your Microvisor Nucleo 
 
 1. [Visit the Beeceptor website](https://beeceptor.com/).
 1. Enter an endpoint name and click **Create Endpoint**.
-1. Copy the API URL, e.g., `https://my-twilio-test.free.beeceptor.com` and paste it into the source code file `App_Code/CMakeLists.txt` where marked. Make sure you add the path `/api/v1/data`.
+1. Copy the API URL, e.g., `https://my-twilio-test.free.beeceptor.com` and paste it into the source code file `App/CMakeLists.txt` where marked. Make sure you add the path `/api/v1/data`.
 1. In Beeceptor, click **Mocking Rules**.
 1. Click **Create New Rule**.
 1. In the **Mocking Rules** panel:

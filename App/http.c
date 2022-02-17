@@ -133,7 +133,6 @@ bool http_send_request(double temp) {
         // Set up the request
         const char verb[] = "POST";
         const char uri[] = API_URL;
-        printf("[*****] %s\n", uri);
 
         // Add a header
         const char header_text[] = "Content-Type: application/json";

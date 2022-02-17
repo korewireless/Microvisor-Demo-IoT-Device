@@ -173,6 +173,7 @@ void start_led_task(void *argument) {
             }
         } else {
             is_connected = false;
+            http_handles.network = get_net_handle();
         }
         
         // Check for a press or release, and debounce

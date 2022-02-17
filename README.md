@@ -106,8 +106,7 @@ This will yield JSON which contains a `device` array — your Microvisor Nucleo 
 
 1. [Visit the Beeceptor website](https://beeceptor.com/).
 1. Enter an endpoint name and click **Create Endpoint**.
-1. Copy the API URL, e.g., `https://my-twilio-test.free.beeceptor.com` and paste it into the source code file `App/CMakeLists.txt` where marked. Make sure you add the path `/api/v1/data`.
-1. In Beeceptor, click **Mocking Rules**.
+1. Click **Mocking Rules**.
 1. Click **Create New Rule**.
 1. In the **Mocking Rules** panel:
     1. Set the **Method** to `POST`.
@@ -115,6 +114,11 @@ This will yield JSON which contains a `device` array — your Microvisor Nucleo 
     1. Set the path to `/api/v1/data`.
     1. Click **Save Rule**.
 1. Close the **Mocking Rules** by clicking the **X** in the top right corner of the panel.
+1. Copy the API URL, e.g., `https://<YOUR_ENDPOINT_NAME>.free.beeceptor.com` and set it as the following environment variable. Make sure you include the path from step 5.3, above:
+
+    ```bash
+    export MVIOT_URL=https://<YOUR_ENDPOINT_NAME>.free.beeceptor.com/api/v1/data
+    ```
 
 ## Build the Application Demo Code
 

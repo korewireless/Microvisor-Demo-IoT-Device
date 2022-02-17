@@ -6,7 +6,7 @@
  * Licence: Apache 2.0
  *
  */
-*#include "main.h"
+#include "main.h"
 
 
 // Central store for Microvisor resource handles used in this code.

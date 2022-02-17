@@ -65,7 +65,7 @@ void http_open_channel(void) {
         printf("[DEBUG] HTTP channel open. Handle: %lu\n", (uint32_t)http_handles.channel);
         assert((http_handles.channel != 0) && "[ERROR] Channel handle not non-zero");
     } else {
-        printf("[ERROR] HTTP channel closed. Status: %lu", status);
+        printf("[ERROR] HTTP channel closed. Status: %lu\n", status);
     }
 }
 
@@ -133,6 +133,7 @@ bool http_send_request(double temp) {
         // Set up the request
         const char verb[] = "POST";
         const char uri[] = API_URL;
+        printf("[*****] %s\n", uri);
 
         // Add a header
         const char header_text[] = "Content-Type: application/json";
@@ -162,7 +163,7 @@ bool http_send_request(double temp) {
         }
 
         // Report send failure
-        printf("[ERROR] Could not issue request. Status: %lu", status);
+        printf("[ERROR] Could not issue request. Status: %lu\n", status);
         return false;
     }
 
@@ -197,16 +198,16 @@ void http_process_response(void) {
                     printf("[DEBUG] HTTP response body length: %lu\n", resp_data.body_length);
                     printf("%s\n", buffer);
                 } else {
-                    printf("[ERROR] HTTP response body read status %lu", status);
+                    printf("[ERROR] HTTP response body read status %lu\n", status);
                 }
             } else {
-                printf("[ERROR] HTTP status code: %lu", resp_data.status_code);
+                printf("[ERROR] HTTP status code: %lu\n", resp_data.status_code);
             }
         } else {
-            printf("[ERROR] Request failed. Status: %lu", (uint32_t)resp_data.result);
+            printf("[ERROR] Request failed. Status: %lu\n", (uint32_t)resp_data.result);
         }
     } else {
-        printf("[ERROR] Response data read failed. Status: %lu", status);
+        printf("[ERROR] Response data read failed. Status: %lu\n", status);
     }
 }
 

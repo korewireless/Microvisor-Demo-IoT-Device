@@ -1,3 +1,11 @@
+/**
+ *
+ * Microvisor IoT Device Demo
+ * Version 1.0.1
+ * Copyright © 2022, Twilio
+ * Licence: Apache 2.0
+ *
+ */
 #ifndef LOGGING_H
 #define LOGGING_H
 

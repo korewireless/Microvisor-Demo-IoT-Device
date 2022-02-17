@@ -43,6 +43,7 @@ volatile bool use_i2c = false;
 volatile bool got_sensor = false;
 volatile bool show_count = false;
 volatile bool request_recv = false;
+volatile bool is_connected = false;
 volatile uint16_t counter = 0;
 volatile double temp = 0.0;
 
@@ -162,6 +163,18 @@ void start_led_task(void *argument) {
         uint32_t tick = HAL_GetTick();
         GPIO_PinState state = 0; //HAL_GPIO_ReadPin(BUTTON_GPIO_BANK, BUTTON_GPIO_PIN);
 
+        // Check connection state
+        if (http_handles.network != 0) {
+            enum MvNetworkStatus net_state = MV_NETWORKSTATUS_DELIBERATELYOFFLINE;
+            uint32_t status = mvGetNetworkStatus(http_handles.network, &net_state);
+            
+            if (status == MV_STATUS_OKAY) {
+                is_connected = (net_state != MV_NETWORKSTATUS_DELIBERATELYOFFLINE);
+            }
+        } else {
+            is_connected = false;
+        }
+        
         // Check for a press or release, and debounce
         if (state == 1 && !pressed) {
             if (press_debounce == 0) {
@@ -192,7 +205,7 @@ void start_led_task(void *argument) {
                     HT16K33_show_value(counter, false);
                 } else {
                     HT16K33_show_value((uint16_t)(temp * 100), true);
-                    HT16K33_set_alpha('c', 3, false);
+                    HT16K33_set_alpha('c', 3, !is_connected);
                 }
 
                 HT16K33_draw();

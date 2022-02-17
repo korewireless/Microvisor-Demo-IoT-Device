@@ -1,4 +1,12 @@
-#include "main.h"
+/**
+ *
+ * Microvisor IoT Device Demo
+ * Version 1.0.1
+ * Copyright © 2022, Twilio
+ * Licence: Apache 2.0
+ *
+ */
+*#include "main.h"
 
 
 // Central store for Microvisor resource handles used in this code.
@@ -13,7 +21,6 @@ struct {
 // a time -- each record is 16 bytes in size.
 static volatile struct MvNotification log_notification_buffer[16];
 extern volatile bool is_connected;
-extern volatile bool net_changed;
 
 
 /**
@@ -216,11 +223,5 @@ MvNetworkHandle get_net_handle() {
  *  @brief Network notification ISR.
  */
 void TIM1_BRK_IRQHandler(void) {
-    // Get the event type
-    enum MvEventType event_kind = log_notification_buffer->event_type;
     
-    if (event_kind == MV_EVENTTYPE_NETWORKSTATUSCHANGED) {
-        // Flag we need to check for a possible network disconnectio
-        net_changed = true;
-    }
 }

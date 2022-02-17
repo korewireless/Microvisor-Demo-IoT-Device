@@ -1,7 +1,7 @@
 /**
  *
  * Microvisor IoT Device Demo
- * Version 1.0.0
+ * Version 1.0.1
  * Copyright © 2022, Twilio
  * Licence: Apache 2.0
  *
@@ -63,16 +63,7 @@ void        system_clock_config(void);
 void        GPIO_init(void);
 void        start_led_task(void *argument);
 void        start_iot_task(void *argument);
-
-void        http_channel_center_setup(void);
-void        http_open_channel(void);
-void        http_close_channel(void);
-bool        http_send_request();
-void        http_process_response(void);
-
 void        log_device_info(void);
-void        log_error(const char* msg, uint32_t value);
-void        format_string(char* out_str, const char* in_str, uint32_t value);
 
 
 #ifdef __cplusplus

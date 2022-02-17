@@ -1,7 +1,7 @@
 /**
  *
  * Microvisor IoT Device Demo
- * Version 1.0.0
+ * Version 1.0.1
  * Copyright © 2022, Twilio
  * Licence: Apache 2.0
  *
@@ -65,7 +65,7 @@ void http_open_channel(void) {
         printf("[DEBUG] HTTP channel open. Handle: %lu\n", (uint32_t)http_handles.channel);
         assert((http_handles.channel != 0) && "[ERROR] Channel handle not non-zero");
     } else {
-        log_error("HTTP channel closed. Status: %lu", status);
+        printf("[ERROR] HTTP channel closed. Status: %lu", status);
     }
 }
 
@@ -162,7 +162,7 @@ bool http_send_request(double temp) {
         }
 
         // Report send failure
-        log_error("Could not issue request. Status: %lu", status);
+        printf("[ERROR] Could not issue request. Status: %lu", status);
         return false;
     }
 
@@ -197,16 +197,16 @@ void http_process_response(void) {
                     printf("[DEBUG] HTTP response body length: %lu\n", resp_data.body_length);
                     printf("%s\n", buffer);
                 } else {
-                    log_error("HTTP response body read status %lu", status);
+                    printf("[ERROR] HTTP response body read status %lu", status);
                 }
             } else {
-                log_error("HTTP status code: %lu", resp_data.status_code);
+                printf("[ERROR] HTTP status code: %lu", resp_data.status_code);
             }
         } else {
-            log_error("Request failed. Status: %lu", (uint32_t)resp_data.result);
+            printf("[ERROR] Request failed. Status: %lu", (uint32_t)resp_data.result);
         }
     } else {
-        log_error("Response data read failed. Status: %lu", status);
+        printf("[ERROR] Response data read failed. Status: %lu", status);
     }
 }
 

@@ -47,6 +47,8 @@ This project is written in C. At this time, we only support Ubuntu 20.0.4. Users
 
 **Note** macOS users may attempt to install the pre-requisites below using [Homebrew](https://brew.sh). This is not supported, but should work. You may need to change the names of a few of the packages listed in the `apt install` command below.
 
+### Libraries and Tools
+
 Under Ubuntu, run the following:
 
 ```bash
@@ -60,6 +62,8 @@ Now run:
 ```bash
 pip3 install cryptography protobuf
 ```
+
+### Twilio CLI
 
 Install the Twilio CLI (required to view streamed logs):
 
@@ -148,4 +152,4 @@ The sample code and Microvisor SDK is © 2022, Twilio, Inc. It is licensed under
 
 The SDK makes used of code © 2021, STMicroelectronics and affiliates. This code is licensed under terms described in [this file](https://github.com/twilio/twilio-microvisor-hal-stm32u5/blob/main/LICENSE-STM32CubeU5.md).
 
-FreeRTOS is © 2021, Amazon Web Services, Inc. It is licensed under the terms of the [Apache 2.0 License](./LICENSE).
+[FreeRTOS](https://freertos.org/) is © 2021, Amazon Web Services, Inc. It is licensed under the terms of the [Apache 2.0 License](./LICENSE).

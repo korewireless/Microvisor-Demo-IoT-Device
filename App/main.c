@@ -1,7 +1,7 @@
 /**
  *
  * Microvisor IoT Device Demo
- * Version 1.0.0
+ * Version 1.0.1
  * Copyright © 2022, Twilio
  * Licence: Apache 2.0
  *
@@ -154,7 +154,7 @@ void start_led_task(void *argument) {
     bool pressed = false;
 
     // Set up the display if it's available
-    if (use_i2c) HT16K33_init(&i2c);
+    if (use_i2c) HT16K33_init();
 
     // The task's main loop
     while (true) {
@@ -278,9 +278,6 @@ void start_iot_task(void *argument) {
 }
 
 
-
-
-
 /**
  * @brief Show basic device info.
  */
@@ -288,43 +285,4 @@ void log_device_info(void) {
     uint8_t buffer[35] = { 0 };
     mvGetDeviceId(buffer, 34);
     printf("Device: %s\n   App: %s\n Build: %i\n", buffer, APP_NAME, BUILD_NUM);
-}
-
-
-/**
- * @brief Log an error message
- *
- * @param msg:   A pointer to a message string containing one long unsigned int marker.
- * @param value: A 32-bit unsigned int to be interpolated into `msg`.
- */
-void log_error(const char* msg, uint32_t value) {
-    char print_str[80] = {0};
-    strcpy(print_str, "[ERROR] ");
-
-    if (strlen(msg) > 61) {
-        char trunc_str[61] = {0};
-        strncpy(trunc_str, msg, 61);
-        sprintf(&print_str[8], trunc_str, value);
-    } else {
-        sprintf(&print_str[8], msg, value);
-    }
-
-    // Output the final string
-    printf(print_str);
-    printf("\n");
-}
-
-
-/**
- * @brief Interpolate a 32-bit unsigned int into a string
- *
- * @param out_str: A pointer to storage for the formatted string. 80 chars max.
- * @param in_str:  A pointer to a message string containing one long unsigned int marker.
- * @param value:   A 32-bit unsigned int to be interpolated into `msg`.
- */
-void format_string(char* out_str, const char* in_str, uint32_t value) {
-    char* base = malloc(80 * sizeof(char));
-    sprintf(base, in_str, value);
-    strcpy(out_str, in_str);
-    free(base);
 }

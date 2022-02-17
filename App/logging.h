@@ -11,10 +11,11 @@ extern "C" {
 #endif
 
 
-void log_open_channel(void);
-void log_close_channel(void);
+void            log_open_channel(void);
+void            log_close_channel(void);
+void            log_channel_center_setup(void);
+void            log_open_network(void);
 MvNetworkHandle get_net_handle();
-// void server_log(const char *str);
 
 
 #ifdef __cplusplus

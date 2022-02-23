@@ -7,7 +7,7 @@
 #
 # @author    Tony Smith
 # @copyright 2022, Twilio
-# @version   1.0.1
+# @version   1.0.2
 # @license   MIT
 #
 

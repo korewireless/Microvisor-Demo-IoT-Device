@@ -1,16 +1,16 @@
 cmake_minimum_required(VERSION 3.14)
 
-# Application data
-set(APP_TITLE "Microvisor IoT Device Demo")
+# Set application data
+set(APP "Microvisor IoT Device Demo")
 set(VERSION_NUMBER "1.0.2")
 set(BUILD_NUMBER "1")
 
-message("Building ${APP_TITLE} ${VERSION_NUMBER} build ${BUILD_NUMBER}")
+message("Building ${APP} ${VERSION_NUMBER} build ${BUILD_NUMBER}")
 
 # Make app data available to the compiler
-add_compile_definitions(BUILD_NUM=${BUILD_NUMBER})
-add_compile_definitions(APP_NAME="${APP_TITLE}")
+add_compile_definitions(APP_NAME="${APP}")
 add_compile_definitions(APP_VERSION="${VERSION_NUMBER}")
+add_compile_definitions(BUILD_NUM=${BUILD_NUMBER})
 
 # Read in the target URL from env var MVIOT_URL
 if(DEFINED ENV{MVIOT_URL})
@@ -22,7 +22,7 @@ endif()
 MESSAGE(STATUS "URL set to: $ENV{MVIOT_URL}")
 
 # Compile app source code file(s)
-add_executable(mv-iot-device-demo
+add_executable(${PROJECT_NAME}
     main.c
     ht16k33.c
     http.c
@@ -33,7 +33,7 @@ add_executable(mv-iot-device-demo
 )
 
 # Link libraries
-target_link_libraries(mv-iot-device-demo LINK_PUBLIC
+target_link_libraries(${PROJECT_NAME} LINK_PUBLIC
     ST_Code
     twilio-microvisor-hal-stm32u5
     FreeRTOS)
@@ -41,12 +41,12 @@ target_link_libraries(mv-iot-device-demo LINK_PUBLIC
 # Optional informational and additional format generation
 # including Bundle output
 add_custom_command(OUTPUT EXTRAS
-    DEPENDS mv-iot-device-demo
-    COMMAND cp "mv-iot-device-demo" "mv-iot-device-demo.elf"
-    COMMAND ${CMAKE_SIZE} --format=berkeley "mv-iot-device-demo"
-    COMMAND ${CMAKE_OBJDUMP} -h -S "mv-iot-device-demo.elf" > "mv-iot-device-demo.list"
-    COMMAND ${CMAKE_OBJCOPY} -O binary "mv-iot-device-demo.elf" "mv-iot-device-demo.bin"
-    COMMAND python3 ../../twilio-microvisor-tools/bundler-py/bundler.py mv-iot-device-demo.elf mv-iot-device-demo.zip
+    DEPENDS ${PROJECT_NAME}
+    COMMAND cp "${PROJECT_NAME}" "${PROJECT_NAME}.elf"
+    COMMAND ${CMAKE_SIZE} --format=berkeley "${PROJECT_NAME}"
+    COMMAND ${CMAKE_OBJDUMP} -h -S "${PROJECT_NAME}.elf" > "${PROJECT_NAME}.list"
+    COMMAND ${CMAKE_OBJCOPY} -O binary "${PROJECT_NAME}.elf" "${PROJECT_NAME}.bin"
+    COMMAND python3 ../../twilio-microvisor-tools/bundler-py/bundler.py "${PROJECT_NAME}.elf" "${PROJECT_NAME}.zip"
     COMMAND rm -f ../../null.d
 )
 

@@ -1,8 +1,11 @@
 cmake_minimum_required(VERSION 3.14)
 
+# Set project name
+set(PROJECT_NAME "mv-iot-device-demo")
+
 set(CMAKE_TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/toolchain.cmake")
 
-project(mv-iot-device-demo C ASM)
+project(${PROJECT_NAME} C ASM)
 
 include_directories(include
                     ${twilio-microvisor-hal-stm32u5_INCLUDE_DIRS})
@@ -30,10 +33,6 @@ set(INCLUDED_HAL_FILES
     Drivers/CMSIS/Device/ST/STM32U5xx/Source/Templates/gcc/startup_stm32u585xx.s
     Drivers/STM32U5xx_HAL_Driver/Src/stm32u5xx_hal_uart.c
     Drivers/STM32U5xx_HAL_Driver/Src/stm32u5xx_hal_uart_ex.c
-)
-
-set(CONFIG_DIRECTORY
-    "${CMAKE_SOURCE_DIR}/Config"
 )
 
 add_subdirectory(twilio-microvisor-hal-stm32u5)
@@ -73,5 +72,3 @@ target_include_directories(FreeRTOS PUBLIC
 )
 
 add_subdirectory(App)
-
-unset(CONFIG_DIRECTORY)

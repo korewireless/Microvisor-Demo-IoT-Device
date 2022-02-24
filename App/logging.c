@@ -57,7 +57,7 @@ void log_open_channel(void) {
         }
     };
     
-    uint32_t status = mvOpenChannel(&channel_config, &log_handles.channel);
+    enum MvStatus status = mvOpenChannel(&channel_config, &log_handles.channel);
     assert(status == MV_STATUS_OKAY);
 }
 
@@ -69,7 +69,7 @@ void log_open_channel(void) {
     we're done with it.
  */
 void log_close_channel(void) {
-    uint32_t status;
+    enum MvStatus status;
 
     // If we have a valid channel handle -- ie. it is non-zero --
     // then ask Microvisor to close it and confirm acceptance of
@@ -131,8 +131,8 @@ int _write(int file, char *ptr, int length) {
 
     // Write out the message string. Each time confirm that Microvisor
     // has accepted the request to write data to the channel.
-    uint32_t written, status;
-    status = mvWriteChannelStream(log_handles.channel, (const uint8_t*)ptr, length, &written);
+    uint32_t written;
+    enum MvStatus status = mvWriteChannelStream(log_handles.channel, (const uint8_t*)ptr, length, &written);
     if (status == MV_STATUS_OKAY) {
         // Return the number of characters written
         // out to the channel
@@ -161,7 +161,7 @@ void log_channel_center_setup() {
         
         // Ask Microvisor to establish the notification center
         // and confirm that it has accepted the request
-        uint32_t status = mvSetupNotifications(&log_notification_config, &log_handles.notification);
+        enum MvStatus status = mvSetupNotifications(&log_notification_config, &log_handles.notification);
         assert(status == MV_STATUS_OKAY);
 
         // Start the notification IRQ
@@ -187,7 +187,7 @@ void log_open_network() {
 
         // Ask Microvisor to establish the network connection
         // and confirm that it has accepted the request
-        uint32_t status = mvRequestNetwork(&network_config, &log_handles.network);
+        enum MvStatus status = mvRequestNetwork(&network_config, &log_handles.network);
         assert(status == MV_STATUS_OKAY);
 
         // The network connection is established by Microvisor asynchronously,

@@ -166,7 +166,7 @@ void start_led_task(void *argument) {
         // Check connection state
         if (http_handles.network != 0) {
             enum MvNetworkStatus net_state = MV_NETWORKSTATUS_DELIBERATELYOFFLINE;
-            uint32_t status = mvGetNetworkStatus(http_handles.network, &net_state);
+            enum MvStatus status = mvGetNetworkStatus(http_handles.network, &net_state);
             
             if (status == MV_STATUS_OKAY) {
                 is_connected = (net_state != MV_NETWORKSTATUS_DELIBERATELYOFFLINE);

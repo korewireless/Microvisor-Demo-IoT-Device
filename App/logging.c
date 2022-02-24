@@ -20,14 +20,13 @@ struct {
 // Central store for notification records. Holds one record at
 // a time -- each record is 16 bytes in size.
 static volatile struct MvNotification log_notification_buffer[16];
-extern volatile bool is_connected;
 
 
 /**
-    @brief  Open a logging channel.
-
-    Open a data channel for Microvisor logging.
-    This call will also request a network connection.
+ * @brief  Open a logging channel.
+ *
+ * Open a data channel for Microvisor logging.
+ * This call will also request a network connection.
  */
 void log_open_channel(void) {
     // Configure the logging notification center
@@ -63,10 +62,11 @@ void log_open_channel(void) {
 
 
 /**
-    @brief  Open the logging channel.
-
-    Close the data channel -- and the network connection -- when
-    we're done with it.
+ *
+ * @brief  Open the logging channel.
+ *
+ * Close the data channel -- and the network connection -- when
+ * we're done with it.
  */
 void log_close_channel(void) {
     enum MvStatus status;
@@ -108,14 +108,14 @@ void log_close_channel(void) {
 
 
 /**
-    Wire up the `stdio` system call, so that `printf()`
-    works as a logging message generator.
-
-    @param  file    The log entry -- a C string -- to send.
-    @param  ptr     A pointer to the C string we want to send.
-    @param  length  The length of the message.
-
-    @return         The number of bytes written, or -1 to indicate error.
+ *
+ * @brief Wire up the `stdio` system call, so that `printf()`
+ *        works as a logging message generator.
+ * @param  file    The log entry -- a C string -- to send.
+ * @param  ptr     A pointer to the C string we want to send.
+ * @param  length  The length of the message.
+ *
+ * @return         The number of bytes written, or -1 to indicate error.
  */
 int _write(int file, char *ptr, int length) {
     if (file != STDOUT_FILENO) {

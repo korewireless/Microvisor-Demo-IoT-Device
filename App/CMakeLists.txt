@@ -19,7 +19,7 @@ else()
     add_compile_definitions(API_URL="UNDEFINED")
 endif()
 
-MESSAGE(STATUS "URL set to: $ENV{MVIOT_URL}")
+message("URL set to: $ENV{MVIOT_URL}")
 
 # Compile app source code file(s)
 add_executable(${PROJECT_NAME}

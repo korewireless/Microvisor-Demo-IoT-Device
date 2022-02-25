@@ -43,17 +43,17 @@ extern "C" {
  */
 #define     LED_GPIO_BANK           GPIOA
 #define     LED_GPIO_PIN            GPIO_PIN_5
-#define     LED_FLASH_PERIOD        1000
+#define     LED_FLASH_PERIOD_MS     1000
 
 #define     BUTTON_GPIO_BANK        GPIOF
 #define     BUTTON_GPIO_PIN         GPIO_PIN_6
 
-#define     DEBUG_TASK_PAUSE        1000
-#define     DEFAULT_TASK_PAUSE      500
+#define     DEBUG_TASK_PAUSE_MS     1000
+#define     DEFAULT_TASK_PAUSE_MS   500
 
-#define     DEBOUNCE_PERIOD         20
-#define     SENSOR_READ_PERIOD      30000
-#define     CHANNEL_KILL_PERIOD     15000
+#define     DEBOUNCE_PERIOD_MS      20
+#define     SENSOR_READ_PERIOD_MS   30000
+#define     CHANNEL_KILL_PERIOD_MS  15000
 
 
 /*

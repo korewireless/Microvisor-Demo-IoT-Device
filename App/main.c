@@ -180,7 +180,7 @@ void start_led_task(void *argument) {
         if (state == 1 && !pressed) {
             if (press_debounce == 0) {
                 press_debounce = tick;
-            } else if (tick - press_debounce > DEBOUNCE_PERIOD) {
+            } else if (tick - press_debounce > DEBOUNCE_PERIOD_MS) {
                 press_debounce = 0;
                 pressed = true;
             }
@@ -189,7 +189,7 @@ void start_led_task(void *argument) {
         if (state == 0 && pressed) {
             if (release_debounce == 0) {
                 release_debounce = tick;
-            } else if (tick - release_debounce > DEBOUNCE_PERIOD) {
+            } else if (tick - release_debounce > DEBOUNCE_PERIOD_MS) {
                 release_debounce = 0;
                 show_count = !show_count;
                 pressed = false;
@@ -197,7 +197,7 @@ void start_led_task(void *argument) {
         }
 
         // Periodically update the display and flash the USER LED
-        if (tick - last_tick > DEFAULT_TASK_PAUSE) {
+        if (tick - last_tick > DEFAULT_TASK_PAUSE_MS) {
             last_tick = tick;
             HAL_GPIO_TogglePin(LED_GPIO_BANK, LED_GPIO_PIN);
 
@@ -249,14 +249,13 @@ void start_iot_task(void *argument) {
         if (got_sensor) {
             temp = MCP9808_read_temp();
 
-            if (tick - read_tick > SENSOR_READ_PERIOD) {
+            if (tick - read_tick > SENSOR_READ_PERIOD_MS) {
                 // Read the sensor every 30s
                 read_tick = tick;
                 printf("\n[DEBUG] Temperature: %.02f\n", temp);
 
                 // No channel open? Try and send the temperature
-                if (http_handles.channel == 0) {
-                    http_open_channel();
+                if (http_handles.channel == 0 && http_open_channel()) {
                     bool result = http_send_request(temp);
                     if (!result) close_channel = true;
                     kill_time = tick;
@@ -273,7 +272,7 @@ void start_iot_task(void *argument) {
 
         // Use 'kill_time' to force-close an open HTTP channel
         // if it's been left open too long
-        if (kill_time > 0 && tick - kill_time > CHANNEL_KILL_PERIOD) {
+        if (kill_time > 0 && tick - kill_time > CHANNEL_KILL_PERIOD_MS) {
             close_channel = true;
         }
 

@@ -27,18 +27,20 @@ extern volatile bool request_recv;
 
 /**
  *  @brief Open a new HTTP channel.
+ *
+ *  @retval `true` if the channel is open, otherwise `false`.
  */
-void http_open_channel(void) {
+bool http_open_channel(void) {
     // Set up the HTTP channel's multi-use send and receive buffers
     static volatile uint8_t http_rx_buffer[1536] __attribute__((aligned(512)));
     static volatile uint8_t http_tx_buffer[512] __attribute__((aligned(512)));
-    static const char endpoint[] = "";
+    const char endpoint[] = "";
 
     // Get the network channel handle.
     // NOTE This is set in `logging.c` which puts the network in place
     //      (ie. so the network handle != 0) well in advance of this being called
     http_handles.network = get_net_handle();
-    assert((http_handles.network != 0) && "[ERROR] Network handle not non-zero");
+    if (http_handles.network == 0) return false;
     printf("[DEBUG] Network handle: %lu\n", (uint32_t)http_handles.network);
 
     // Configure the required data channel
@@ -62,11 +64,13 @@ void http_open_channel(void) {
     // and confirm that it has accepted the request
     enum MvStatus status = mvOpenChannel(&channel_config, &http_handles.channel);
     if (status == MV_STATUS_OKAY) {
-        printf("[DEBUG] HTTP channel open. Handle: %lu\n", (uint32_t)http_handles.channel);
-        assert((http_handles.channel != 0) && "[ERROR] Channel handle not non-zero");
+        printf("[DEBUG] HTTP channel handle: %lu\n", (uint32_t)http_handles.channel);
+        return true;
     } else {
-        printf("[ERROR] HTTP channel closed. Status: %i\n", status);
+        printf("[ERROR] HTTP channel opening failed. Status: %i\n", status);
     }
+    
+    return false;
 }
 
 
@@ -203,7 +207,7 @@ void http_process_response(void) {
                 printf("[ERROR] HTTP status code: %lu\n", resp_data.status_code);
             }
         } else {
-            printf("[ERROR] Request failed. Status: %lu\n", (uint32_t)resp_data.result);
+            printf("[ERROR] Request failed. Status: %i\n", resp_data.result);
         }
     } else {
         printf("[ERROR] Response data read failed. Status: %i\n", status);

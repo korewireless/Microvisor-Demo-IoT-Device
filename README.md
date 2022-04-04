@@ -1,4 +1,4 @@
-# Twilio Microvisor IoT Device Demo 1.0.3
+# Twilio Microvisor IoT Device Demo 1.0.4
 
 This repo provides a basic demonstration of a sample IoT device application. It makes use of a temperature sensor and four-digit display to periodically read and present the local temperature. It transmits the data to a mock API.
 
@@ -21,6 +21,12 @@ and then:
 ```bash
 cd microvisor-iot-device-demo
 git submodule update --init --recursive
+```
+
+To subsequently update the submodules to their most recent commits, run:
+
+```bash
+git submodule update --remote --recursive
 ```
 
 ## Requirements

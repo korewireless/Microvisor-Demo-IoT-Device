@@ -52,7 +52,7 @@ extern "C" {
 #define     DEFAULT_TASK_PAUSE_MS   500
 
 #define     DEBOUNCE_PERIOD_MS      20
-#define     SENSOR_READ_PERIOD_MS   30000
+#define     SENSOR_READ_PERIOD_MS   60000
 #define     CHANNEL_KILL_PERIOD_MS  15000
 
 

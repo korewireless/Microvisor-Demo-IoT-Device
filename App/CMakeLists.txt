@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.14)
 
 # Set application data
 set(APP "Microvisor IoT Device Demo")
-set(VERSION_NUMBER "1.0.4")
+set(VERSION_NUMBER "1.1.0")
 set(BUILD_NUMBER "1")
 
 message("Building ${APP} ${VERSION_NUMBER} build ${BUILD_NUMBER}")
@@ -40,14 +40,31 @@ target_link_libraries(${PROJECT_NAME} LINK_PUBLIC
 
 # Optional informational and additional format generation
 # including Bundle output
-add_custom_command(OUTPUT EXTRAS
+add_custom_command(OUTPUT EXTRAS-1
     DEPENDS ${PROJECT_NAME}
     COMMAND cp "${PROJECT_NAME}" "${PROJECT_NAME}.elf"
     COMMAND ${CMAKE_SIZE} --format=berkeley "${PROJECT_NAME}"
     COMMAND ${CMAKE_OBJDUMP} -h -S "${PROJECT_NAME}.elf" > "${PROJECT_NAME}.list"
     COMMAND ${CMAKE_OBJCOPY} -O binary "${PROJECT_NAME}.elf" "${PROJECT_NAME}.bin"
+)
+
+add_custom_command(OUTPUT EXTRAS-2
+    DEPENDS ${PROJECT_NAME}
+    COMMAND "${CMAKE_SOURCE_DIR}/prep-keys.sh"
+    COMMAND python3 ../../twilio-microvisor-tools/bundler-py/bundler.py "${PROJECT_NAME}.elf" --debug-auth-pubkey remote-debug-public-key.pem "${PROJECT_NAME}.zip"
+    COMMAND rm -f ../../null.d
+)
+
+add_custom_command(OUTPUT EXTRAS-3
+    DEPENDS ${PROJECT_NAME}
     COMMAND python3 ../../twilio-microvisor-tools/bundler-py/bundler.py "${PROJECT_NAME}.elf" "${PROJECT_NAME}.zip"
     COMMAND rm -f ../../null.d
 )
 
-add_custom_target(extras ALL DEPENDS EXTRAS)
+if(${ENABLE_REMOTE} EQUAL "1")
+    message("Bundling ${APP} for remote debugging")
+    add_custom_target(extras ALL DEPENDS EXTRAS-1 EXTRAS-2)
+else()
+    message("Bundling ${APP}")
+    add_custom_target(extras ALL DEPENDS EXTRAS-1 EXTRAS-3)
+endif()

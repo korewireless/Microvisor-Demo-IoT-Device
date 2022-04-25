@@ -7,7 +7,7 @@
 #
 # @author    Tony Smith
 # @copyright 2022, Twilio
-# @version   1.1.0
+# @version   1.2.0
 # @license   MIT
 #
 
@@ -36,7 +36,10 @@ stream_log() {
 
 build_app() {
     echo "Building app..."
-    cmake --build build > /dev/null
+    if [[ ! -d ./build ]]; then
+        cmake -S . -B build
+    fi
+    cmake --build build --clean-first > /dev/null
     if [[ $? -eq 0 ]]; then
         echo "App built"
     else

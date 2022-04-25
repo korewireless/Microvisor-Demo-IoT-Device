@@ -4,6 +4,7 @@ cmake_minimum_required(VERSION 3.14)
 set(PROJECT_NAME "mv-iot-device-demo")
 
 set(CMAKE_TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/toolchain.cmake")
+set(ENABLE_REMOTE "1")
 
 project(${PROJECT_NAME} C CXX ASM)
 

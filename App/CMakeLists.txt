@@ -39,7 +39,7 @@ target_link_libraries(${PROJECT_NAME} LINK_PUBLIC
     FreeRTOS)
 
 # Optional informational and additional format generation, including Bundle output
-add_custom_command(OUTPUT EXTRAS-1
+add_custom_command(OUTPUT EXTRA_FILES
     DEPENDS ${PROJECT_NAME}
     COMMAND cp "${PROJECT_NAME}" "${PROJECT_NAME}.elf"
     COMMAND ${CMAKE_SIZE} --format=berkeley "${PROJECT_NAME}"
@@ -48,26 +48,38 @@ add_custom_command(OUTPUT EXTRAS-1
 )
 
 # Bundle with remote debugging key
-add_custom_command(OUTPUT EXTRAS-2
+add_custom_command(OUTPUT REMOTE_DEBUG
     DEPENDS ${PROJECT_NAME}
-    COMMAND "${CMAKE_SOURCE_DIR}/prep-keys.sh"
-    COMMAND python3 ../../twilio-microvisor-tools/bundler-py/bundler.py "${PROJECT_NAME}.elf" --debug-auth-pubkey remote-debug-public-key.pem "${PROJECT_NAME}.zip"
+    COMMAND python3 ../../twilio-microvisor-tools/bundler-py/bundler.py "${PROJECT_NAME}.elf" --debug-auth-pubkey debug_auth_pub_key.pem "${PROJECT_NAME}.zip"
     COMMAND rm -f ../../null.d
 )
 
 # Bundle without remote debugging key
-add_custom_command(OUTPUT EXTRAS-3
+add_custom_command(OUTPUT NO_REMOTE_DEBUG
     DEPENDS ${PROJECT_NAME}
     COMMAND python3 ../../twilio-microvisor-tools/bundler-py/bundler.py "${PROJECT_NAME}.elf" "${PROJECT_NAME}.zip"
     COMMAND rm -f ../../null.d
 )
 
+# Generate remote debugging auth keys
+add_custom_command(OUTPUT GEN_KEYS
+    COMMAND openssl ecparam -name prime256v1 -genkey -noout -out debug_auth_priv_key.pem 2>/dev/null
+    COMMAND openssl ec -in debug_auth_priv_key.pem -pubout -out debug_auth_pub_key.pem 2>/dev/null
+)
+    
+find_program(OPENSSL "openssl")
+if(NOT OPENSSL)
+    # No OpenSSL so can't do debug build
+    message(WARNING "OpenSSL could not be found... cannot enable remote debugging")
+    set(ENABLE_REMOTE 0)
+endif()
+
 # Based on build setting (see project CMakeLists.txt),
 # select which addtional command sets to run
-if(${ENABLE_REMOTE} EQUAL "1")
+if(DEFINED ENABLE_REMOTE AND ${ENABLE_REMOTE} EQUAL 1)
     message("Bundling ${APP} for remote debugging")
-    add_custom_target(extras ALL DEPENDS EXTRAS-1 EXTRAS-2)
+    add_custom_target(extras ALL DEPENDS GEN_KEYS EXTRA_FILES REMOTE_DEBUG)
 else()
     message("Bundling ${APP}")
-    add_custom_target(extras ALL DEPENDS EXTRAS-1 EXTRAS-3)
+    add_custom_target(extras ALL DEPENDS EXTRA_FILES NO_REMOTE_DEBUG)
 endif()

@@ -158,6 +158,12 @@ You can start log streaming separately — for example, in a second terminal win
 twilio microvisor:logs:stream ${MV_DEVICE_SID}
 ```
 
+## Remote Debugging
+
+Remote debugging is not enabled by default. To enable it, edit the root `CMakeLists.txt` file and change the line `set(ENABLE_REMOTE 0)` to `set(ENABLE_REMOTE 1)`.
+
+This will cause remote debugging authentication keys to be generated and the public key added to the geneerated app bundle. You can then use GDB to remotely control the code. For more details, including software setup guidance, see [**Microvisor Remote Debugging**](https://twilio.com/docs/iot/microvisor/microvisor-remote-debugging).
+
 ## Copyright and Licensing
 
 The sample code and Microvisor SDK is © 2022, Twilio, Inc. It is licensed under the terms of the [Apache 2.0 License](./LICENSE).

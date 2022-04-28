@@ -1,7 +1,7 @@
 /**
  *
  * Microvisor IoT Device Demo
- * Version 1.0.4
+ * Version 1.1.0
  * Copyright © 2022, Twilio
  * Licence: Apache 2.0
  *
@@ -24,7 +24,7 @@ uint8_t     display_buffer[17];
  */
 
 /**
-    Power on the LEDs and set the brightness.
+ * @brief Power on the LEDs and set the brightness.
  */
 void HT16K33_init() {
     HT16K33_write_cmd(0x21);     // System on
@@ -35,10 +35,9 @@ void HT16K33_init() {
 
 
 /**
-    Issue a single command byte to the HT16K33.
-
-    - Parameters:
-        - cmd: The single-byte command.
+ * @brief Issue a single command byte to the HT16K33.
+ *
+ * @param cmd: The single-byte command.
  */
 void HT16K33_write_cmd(uint8_t cmd) {
     HAL_I2C_Master_Transmit(&i2c, HT16K33_I2C_ADDR << 1, &cmd, 1, 100);
@@ -46,9 +45,9 @@ void HT16K33_write_cmd(uint8_t cmd) {
 
 
 /**
-    Clear the display buffer.
-
-    This does not clear the LED -- call `HT16K33_draw()`.
+ * @brief Clear the display buffer.
+ *
+ *  This does not clear the LED -- call `HT16K33_draw()`.
  */
 void HT16K33_clear_buffer() {
     for (uint8_t i = 0 ; i < 17 ; ++i) {
@@ -58,7 +57,7 @@ void HT16K33_clear_buffer() {
 
 
 /**
-    Write the display buffer out to the LED.
+ * @brief Write the display buffer out to the LED.
  */
 void HT16K33_draw() {
     // Set up the buffer holding the data to be
@@ -72,12 +71,11 @@ void HT16K33_draw() {
 
 
 /**
-    Write a decimal value to the display buffer.
-
-    - Parameters:
-        - value:   The value to write.
-        - decimal: `true` if digit 1's decimal point should be lit,
-                   `false` otherwise.
+ * @brief Write a decimal value to the display buffer.
+ *
+ *  @param value:   The value to write.
+ *  @param decimal: `true` if digit 1's decimal point should be lit,
+ *                  `false` otherwise.
  */
 void HT16K33_show_value(int16_t value, bool decimal) {
     // Convert the value to BCD...
@@ -91,13 +89,12 @@ void HT16K33_show_value(int16_t value, bool decimal) {
 
 
 /**
-    Write a single-digit decimal number to the display buffer at the specified digit.
-
-    - Parameters:
-        - number:  The value to write.
-        - digit:   The digit that will show the number.
-        - has_dot: `true` if the digit's decimal point should be lit,
-                   `false` otherwise.
+ *  @brief Write a single-digit decimal number to the display buffer at the specified digit.
+ *
+ *  @param  number:  The value to write.
+ *  @param  digit:   The digit that will show the number.
+ *  @param  has_dot: `true` if the digit's decimal point should be lit,
+ *                   `false` otherwise.
  */
 void HT16K33_set_number(uint8_t number, uint8_t digit, bool has_dot) {
     if (digit > 4) return;
@@ -107,13 +104,39 @@ void HT16K33_set_number(uint8_t number, uint8_t digit, bool has_dot) {
 
 
 /**
-    Write a single character to the display buffer at the specified digit.
+ * @brief Write a single character glyph to the display buffer at the specified digit.
+ *
+ *  Glyph values are 8-bit integers representing a pattern of set LED segments.
+ *  The value is calculated by setting the bit(s) representing the segment(s) you want illuminated.
+ *  Bit-to-segment mapping runs clockwise from the top around the outside of the matrix; the inner segment is bit 6:
+ *       0
+ *       _
+ *   5 |   | 1
+ *     |   |
+ *       - <----- 6
+ *   4 |   | 2
+ *     | _ |
+ *       3
+ *
+ *  @param glyph:   The glyph to write.
+ *  @param digit:   The digit that will show the number.
+ *  @param has_dot: `true` if the digit's decimal point should be lit,
+ *                  `false` otherwise.
+ */
+void HT16K33_set_glyph(uint8_t glyph, uint8_t digit, bool has_dot) {
+    if (digit > 4) return;
+    display_buffer[POS[digit]] = glyph;
+    if (has_dot) display_buffer[POS[digit]] |= 0x80;
+}
 
-    - Parameters:
-        - chr:     The character to write.
-        - digit:   The digit that will show the number.
-        - has_dot: `true` if the digit's decimal point should be lit,
-                   `false` otherwise.
+
+/**
+ * @brief Write a single character to the display buffer at the specified digit.
+ *
+ * @param chr:     The character to write.
+ * @param digit:   The digit that will show the number.
+ * @param has_dot: `true` if the digit's decimal point should be lit,
+ *                 `false` otherwise.
  */
 void HT16K33_set_alpha(char chr, uint8_t digit, bool has_dot) {
     if (digit > 4) return;
@@ -132,12 +155,11 @@ void HT16K33_set_alpha(char chr, uint8_t digit, bool has_dot) {
 
 
 /**
-    Convert a 16-bit value (0-9999) to BCD notation.
-
-    - Parameters:
-        - value: The value to convert.
-
-    - Returns: the BCD form of the value.
+ * @brief Convert a 16-bit value (0-9999) to BCD notation.
+ *
+ * @param value: The value to convert.
+ *
+ * @retval The BCD form of the value.
  */
 uint32_t bcd(uint32_t base) {
     if (base > 9999) base = 9999;

@@ -1,7 +1,7 @@
 /**
  *
  * Microvisor IoT Device Demo
- * Version 1.0.4
+ * Version 1.1.0
  * Copyright © 2022, Twilio
  * Licence: Apache 2.0
  *
@@ -27,6 +27,7 @@ void        HT16K33_clear_buffer();
 void        HT16K33_show_value(int16_t value, bool has_decimal);
 void        HT16K33_set_alpha(char chr, uint8_t digit, bool has_dot);
 void        HT16K33_set_number(uint8_t number, uint8_t digit, bool has_dot);
+void        HT16K33_set_glyph(uint8_t glyph, uint8_t digit, bool has_dot);
 uint32_t    bcd(uint32_t value);
 
 

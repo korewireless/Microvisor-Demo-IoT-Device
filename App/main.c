@@ -1,7 +1,7 @@
 /**
  *
  * Microvisor IoT Device Demo
- * Version 1.0.4
+ * Version 1.1.0
  * Copyright © 2022, Twilio
  * Licence: Apache 2.0
  *
@@ -70,6 +70,26 @@ int main(void) {
     // Initialize the peripherals
     GPIO_init();
     I2C_init();
+    
+    // FROM 1.1.0
+    // Signal app start on LED
+    if (use_i2c) {
+        // Set up the display if it's available
+        HT16K33_init();
+        
+        // Write 'boot' to the LED
+        HT16K33_set_glyph(0x7C, 0, false);
+        HT16K33_set_glyph(0x5C, 1, false);
+        HT16K33_set_glyph(0x5C, 2, false);
+        HT16K33_set_glyph(0x78, 3, false);
+        HT16K33_draw();
+        
+        // Wait 1.5 seconds
+        uint32_t tick = HAL_GetTick();
+        while (HAL_GetTick() - tick < 1500) {
+            // NOP
+        }
+    }
 
     // Init scheduler
     osKernelInitialize();
@@ -153,9 +173,6 @@ void start_led_task(void *argument) {
     uint32_t press_debounce = 0;
     uint32_t release_debounce = 0;
     bool pressed = false;
-
-    // Set up the display if it's available
-    if (use_i2c) HT16K33_init();
 
     // The task's main loop
     while (true) {

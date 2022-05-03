@@ -1,0 +1,19 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "gdb",
+            "request": "attach",
+            "name": "Attach to gdbserver",
+            "gdbpath": "arm-none-eabi-gdb",
+            "executable": "${command:cmake.launchTargetPath}",
+            "target": "localhost:8001",
+            "remote": true,
+            "printCalls": true,
+            "cwd": "${workspaceRoot}",
+            "valuesFormatting": "parseText",
+            "runToMain": true,
+            "preLaunchTask": "start_gdb_server"
+        }
+    ]
+}

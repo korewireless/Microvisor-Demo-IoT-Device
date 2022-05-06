@@ -14,8 +14,9 @@ extern I2C_HandleTypeDef i2c;
 
 /**
     @brief  Check the device is connected and operational.
-    @retval `true` if we can read values and they are right,
-            otherwise `false`.
+ 
+    @returns `true` if we can read values and they are right,
+             otherwise `false`.
  */
 bool MCP9808_init() {
     // Prep data storage buffers
@@ -44,7 +45,8 @@ bool MCP9808_init() {
 
 /**
     @brief  Check the device is connected and operational.
-    @retval `true` if the sensor is correct, otherwise `false`.
+ 
+    @returns `true` if the sensor is correct, otherwise `false`.
  */
 double MCP9808_read_temp() {
     // Read sensor and return its value in degrees celsius.

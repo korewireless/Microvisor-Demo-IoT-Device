@@ -18,7 +18,7 @@
 osThreadId_t LEDTask;
 const osThreadAttr_t led_task_attributes = {
     .name = "LEDTask",
-    .stack_size = 512,
+    .stack_size = 1024,
     .priority = (osPriority_t) osPriorityNormal
 };
 
@@ -110,10 +110,10 @@ int main(void) {
 
 
 /**
-  * @brief Get the MV clock value.
-  *
-  * @returns The clock value.
-  */
+ * @brief Get the MV clock value.
+ *
+ * @returns The clock value.
+ */
 uint32_t SECURE_SystemCoreClockUpdate() {
     uint32_t clock = 0;
     mvGetHClk(&clock);
@@ -122,8 +122,8 @@ uint32_t SECURE_SystemCoreClockUpdate() {
 
 
 /**
-  * @brief System clock configuration.
-  */
+ * @brief System clock configuration.
+ */
 void system_clock_config(void) {
     SystemCoreClockUpdate();
     HAL_InitTick(TICK_INT_PRIORITY);
@@ -131,10 +131,10 @@ void system_clock_config(void) {
 
 
 /**
-  * @brief Initialize the MCU GPIO
-  *
-  * Used to flash the Nucleo's USER LED, which is on GPIO Pin PA5.
-  */
+ * @brief Initialize the MCU GPIO
+ *
+ * Used to flash the Nucleo's USER LED, which is on GPIO Pin PA5.
+ */
 void GPIO_init(void) {
     // Enable GPIO port clock
     __HAL_RCC_GPIOA_CLK_ENABLE();
@@ -162,17 +162,12 @@ void GPIO_init(void) {
 
 
 /**
-  * @brief Function implementing the display task thread.
-  *
-  * @param argument: Not used.
-  */
+ * @brief Function implementing the display task thread.
+ *
+ * @param argument: Not used.
+ */
 void start_led_task(void *argument) {
     uint32_t last_tick = 0;
-
-    // Button state values
-    uint32_t press_debounce = 0;
-    uint32_t release_debounce = 0;
-    bool pressed = false;
 
     // The task's main loop
     while (true) {
@@ -218,10 +213,10 @@ void start_led_task(void *argument) {
 
 
 /**
-  * @brief Function implementing the Debug Task thread.
-  *
-  * @param argument: Not used.
-  */
+ * @brief Function implementing the Debug Task thread.
+ *
+ * @param argument: Not used.
+ */
 void start_iot_task(void *argument) {
     // Get the Device ID and build number
     log_device_info();
@@ -249,6 +244,8 @@ void start_iot_task(void *argument) {
                 // Read the sensor every x seconds
                 read_tick = tick;
                 printf("\n[DEBUG] Temperature: %.02f\n", temp);
+                HT16K33_set_point(0, true);
+                HT16K33_draw();
                 
                 // No channel open? Try and send the temperature
                 if (http_handles.channel == 0 && http_open_channel()) {

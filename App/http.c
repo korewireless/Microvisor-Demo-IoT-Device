@@ -28,7 +28,7 @@ extern volatile bool request_recv;
 /**
  *  @brief Open a new HTTP channel.
  *
- *  @retval `true` if the channel is open, otherwise `false`.
+ *  @returns `true` if the channel is open, otherwise `false`.
  */
 bool http_open_channel(void) {
     // Set up the HTTP channel's multi-use send and receive buffers

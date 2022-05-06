@@ -175,7 +175,7 @@ void HT16K33_set_point(uint8_t digit, bool is_set) {
  *
  * @param value: The value to convert.
  *
- * @retval The BCD form of the value.
+ * @returns The BCD form of the value.
  */
 uint32_t bcd(uint32_t base) {
     if (base > 9999) base = 9999;

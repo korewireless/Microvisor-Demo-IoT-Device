@@ -267,10 +267,10 @@ void start_iot_task(void *argument) {
             temp = MCP9808_read_temp();
 
             if (tick - read_tick > SENSOR_READ_PERIOD_MS) {
-                // Read the sensor every 30s
+                // Read the sensor every x seconds
                 read_tick = tick;
                 printf("\n[DEBUG] Temperature: %.02f\n", temp);
-
+                
                 // No channel open? Try and send the temperature
                 if (http_handles.channel == 0 && http_open_channel()) {
                     bool result = http_send_request(temp);
@@ -315,4 +315,18 @@ void log_device_info(void) {
     uint8_t buffer[35] = { 0 };
     mvGetDeviceId(buffer, 34);
     printf("Device: %s\n   App: %s %s\n Build: %i\n", buffer, APP_NAME, APP_VERSION, BUILD_NUM);
+}
+
+
+void report_and_assert(uint16_t err_code) {
+    // Display the error code on the LED
+    HT16K33_clear_buffer();
+    HT16K33_show_value(err_code, false);
+    HT16K33_set_glyph(0x79, 0, false);
+    HT16K33_set_glyph(0x00, 1, false);
+    HT16K33_draw();
+    
+    // Halt everything
+    vTaskSuspendAll();
+    assert(false);
 }

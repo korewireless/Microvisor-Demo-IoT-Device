@@ -57,7 +57,7 @@ void log_open_channel(void) {
     };
     
     enum MvStatus status = mvOpenChannel(&channel_config, &log_handles.channel);
-    assert(status == MV_STATUS_OKAY);
+    if (status != MV_STATUS_OKAY) report_and_assert(ERR_LOG_CHANNEL_NOT_OPEN);
 }
 
 
@@ -76,31 +76,31 @@ void log_close_channel(void) {
     // the closure request.
     if (log_handles.channel != 0) {
         status = mvCloseChannel(&log_handles.channel);
-        assert(status == MV_STATUS_OKAY);
+        if (status != MV_STATUS_OKAY) report_and_assert(ERR_LOG_CHANNEL_NOT_CLOSED);
     }
 
     // Confirm the channel handle has been invalidated by Microvisor
-    assert(log_handles.channel == 0);
+    if (log_handles.channel != 0) report_and_assert(ERR_LOG_CHANNEL_HANDLE_NOT_ZERO);
 
     // If we have a valid network handle, then ask Microvisor to
     // close the connection and confirm acceptance of the request.
     if (log_handles.network != 0) {
         status = mvReleaseNetwork(&log_handles.network);
-        assert(status == MV_STATUS_OKAY);
+        if (status != MV_STATUS_OKAY) report_and_assert(ERR_NETWORK_NOT_CLOSED);
     }
 
     // Confirm the network handle has been invalidated by Microvisor
-    assert(log_handles.network == 0);
+    if (log_handles.network != 0) report_and_assert(ERR_NETWORK_HANDLE_NOT_ZERO);
 
     // If we have a valid notification center handle, then ask Microvisor
     // to tear down the center and confirm acceptance of the request.
     if (log_handles.notification != 0) {
         status = mvCloseNotifications(&log_handles.notification);
-        assert(status == MV_STATUS_OKAY);
+        if (status != MV_STATUS_OKAY) report_and_assert(ERR_NOTIFICATION_CENTER_NOT_CLOSED);
     }
 
     // Confirm the notification center handle has been invalidated by Microvisor
-    assert(log_handles.notification == 0);
+    if (log_handles.notification != 0) report_and_assert(ERR_NOTIFICATION_CENTER_HANDLE_NOT_ZERO);
 
     NVIC_DisableIRQ(TIM8_BRK_IRQn);
     NVIC_ClearPendingIRQ(TIM8_BRK_IRQn);
@@ -162,7 +162,7 @@ void log_channel_center_setup() {
         // Ask Microvisor to establish the notification center
         // and confirm that it has accepted the request
         enum MvStatus status = mvSetupNotifications(&log_notification_config, &log_handles.notification);
-        assert(status == MV_STATUS_OKAY);
+        if (status != MV_STATUS_OKAY) report_and_assert(ERR_NETWORK_NC_NOT_OPEN);
 
         // Start the notification IRQ
         NVIC_ClearPendingIRQ(TIM1_BRK_IRQn);
@@ -188,7 +188,7 @@ void log_open_network() {
         // Ask Microvisor to establish the network connection
         // and confirm that it has accepted the request
         enum MvStatus status = mvRequestNetwork(&network_config, &log_handles.network);
-        assert(status == MV_STATUS_OKAY);
+        if (status != MV_STATUS_OKAY) report_and_assert(ERR_NETWORK_NOT_OPEN);
 
         // The network connection is established by Microvisor asynchronously,
         // so we wait for it to come up before opening the data channel -- which

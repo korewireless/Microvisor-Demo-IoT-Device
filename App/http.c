@@ -84,11 +84,11 @@ void http_close_channel(void) {
     if (http_handles.channel != 0) {
         enum MvStatus status = mvCloseChannel(&http_handles.channel);
         printf("[DEBUG] HTTP channel closed\n");
-        assert((status == MV_STATUS_OKAY || status == MV_STATUS_CHANNELCLOSED) && "[ERROR] Channel closure");
+        if (status != MV_STATUS_OKAY && status != MV_STATUS_CHANNELCLOSED) report_and_assert(ERR_CHANNEL_NOT_CLOSED);
     }
 
     // Confirm the channel handle has been invalidated by Microvisor
-    assert((http_handles.channel == 0) && "[ERROR] Channel handle not zero");
+    if (http_handles.channel != 0) report_and_assert(ERR_CHANNEL_HANDLE_NOT_ZERO);
 }
 
 
@@ -109,7 +109,10 @@ void http_channel_center_setup(void) {
     // Ask Microvisor to establish the notification center
     // and confirm that it has accepted the request
     enum MvStatus status = mvSetupNotifications(&http_notification_setup, &http_handles.notification);
-    assert((status == MV_STATUS_OKAY) && "[ERROR] Could not set up HTTP channel NC");
+    if (status != MV_STATUS_OKAY) {
+        report_and_assert(ERR_NOTIFICATION_CENTER_NOT_OPEN);
+        return;
+    }
 
     // Start the notification IRQ
     NVIC_ClearPendingIRQ(TIM8_BRK_IRQn);

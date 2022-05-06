@@ -4,7 +4,19 @@
         {
             "label": "start_gdb_server",
             "type": "shell",
-            "command": "twilio microvisor:debug $MV_DEVICE_SID"
+            "command": "twilio microvisor:debug $MV_DEVICE_SID -l debug",
+            "isBackground": true,
+            "problemMatcher": {
+                "owner": "shell",
+                "pattern": {
+                    "regexp": "DONT_FIND_PROBLEMS"
+                },
+                "background": {
+                    "activeOnStart": true,
+                    "beginsPattern": "^GDB server listening",
+                    "endsPattern": "^GDB server listening"
+                }
+            }
         }
     ]
 }

@@ -4,15 +4,14 @@
         {
             "type": "gdb",
             "request": "attach",
-            "name": "Attach to gdbserver",
+            "name": "MV Remote Debug",
             "gdbpath": "arm-none-eabi-gdb",
-            "executable": "${command:cmake.launchTargetPath}",
+            "executable": "./build/App/mv-iot-device-demo.elf",
             "target": "localhost:8001",
             "remote": true,
             "printCalls": true,
             "cwd": "${workspaceRoot}",
             "valuesFormatting": "parseText",
-            "runToMain": true,
             "preLaunchTask": "start_gdb_server"
         }
     ]

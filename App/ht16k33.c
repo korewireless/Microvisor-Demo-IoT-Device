@@ -97,7 +97,7 @@ void HT16K33_show_value(int16_t value, bool decimal) {
  *                   `false` otherwise.
  */
 void HT16K33_set_number(uint8_t number, uint8_t digit, bool has_dot) {
-    if (digit > 4) return;
+    if (digit > 3) return;
     if (number > 9) return;
     HT16K33_set_alpha('0' + number, digit, has_dot);
 }
@@ -124,7 +124,7 @@ void HT16K33_set_number(uint8_t number, uint8_t digit, bool has_dot) {
  *                  `false` otherwise.
  */
 void HT16K33_set_glyph(uint8_t glyph, uint8_t digit, bool has_dot) {
-    if (digit > 4) return;
+    if (digit > 3) return;
     display_buffer[POS[digit]] = glyph;
     if (has_dot) display_buffer[POS[digit]] |= 0x80;
 }
@@ -139,7 +139,7 @@ void HT16K33_set_glyph(uint8_t glyph, uint8_t digit, bool has_dot) {
  *                 `false` otherwise.
  */
 void HT16K33_set_alpha(char chr, uint8_t digit, bool has_dot) {
-    if (digit > 4) return;
+    if (digit > 3) return;
 
     uint8_t char_val = 0xFF;
     if (chr >= 'a' && chr <= 'f') {
@@ -153,6 +153,22 @@ void HT16K33_set_alpha(char chr, uint8_t digit, bool has_dot) {
     if (has_dot) display_buffer[POS[digit]] |= 0x80;
 }
 
+
+/**
+ * @brief Set or unset a digit's decimal point.
+ *
+ * @param digit:   The digit that will show the number.
+ * @param is_set:  `true` if the digit's decimal point should be lit,
+ *                 `false` otherwise.
+ */
+void HT16K33_set_point(uint8_t digit, bool is_set) {
+    if (digit > 3) return;
+    if (is_set) {
+        display_buffer[POS[digit]] |= 0x80;
+    } else {
+        display_buffer[POS[digit]] &= 0x7F;
+    }
+}
 
 /**
  * @brief Convert a 16-bit value (0-9999) to BCD notation.

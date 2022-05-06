@@ -178,7 +178,6 @@ void start_led_task(void *argument) {
     while (true) {
         // Get the ms timer value and read the button
         uint32_t tick = HAL_GetTick();
-        GPIO_PinState state = 0; //HAL_GPIO_ReadPin(BUTTON_GPIO_BANK, BUTTON_GPIO_PIN);
 
         // Check connection state
         if (http_handles.network != 0) {
@@ -193,26 +192,6 @@ void start_led_task(void *argument) {
             http_handles.network = get_net_handle();
         }
         
-        // Check for a press or release, and debounce
-        if (state == 1 && !pressed) {
-            if (press_debounce == 0) {
-                press_debounce = tick;
-            } else if (tick - press_debounce > DEBOUNCE_PERIOD_MS) {
-                press_debounce = 0;
-                pressed = true;
-            }
-        }
-
-        if (state == 0 && pressed) {
-            if (release_debounce == 0) {
-                release_debounce = tick;
-            } else if (tick - release_debounce > DEBOUNCE_PERIOD_MS) {
-                release_debounce = 0;
-                show_count = !show_count;
-                pressed = false;
-            }
-        }
-
         // Periodically update the display and flash the USER LED
         if (tick - last_tick > DEFAULT_TASK_PAUSE_MS) {
             last_tick = tick;
@@ -318,6 +297,9 @@ void log_device_info(void) {
 }
 
 
+/**
+ * @brief Report an error (numeric code) on the 4-digit LED.
+ */
 void report_and_assert(uint16_t err_code) {
     // Display the error code on the LED
     HT16K33_clear_buffer();

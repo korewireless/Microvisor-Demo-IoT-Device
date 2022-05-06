@@ -102,8 +102,8 @@ void log_close_channel(void) {
     // Confirm the notification center handle has been invalidated by Microvisor
     if (log_handles.notification != 0) report_and_assert(ERR_NOTIFICATION_CENTER_HANDLE_NOT_ZERO);
 
-    NVIC_DisableIRQ(TIM8_BRK_IRQn);
-    NVIC_ClearPendingIRQ(TIM8_BRK_IRQn);
+    NVIC_DisableIRQ(TIM1_BRK_IRQn);
+    NVIC_ClearPendingIRQ(TIM1_BRK_IRQn);
 }
 
 

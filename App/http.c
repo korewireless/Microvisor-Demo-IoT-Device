@@ -227,7 +227,7 @@ void http_process_response(void) {
 void TIM8_BRK_IRQHandler(void) {
     // Get the event type
     enum MvEventType event_kind = http_notification_center->event_type;
-    printf("[DEBUG] Channel notification center IRQ called for event: %u\n", event_kind);
+    // printf("[DEBUG] Channel notification center IRQ called for event: %u\n", event_kind);
 
     if (event_kind == MV_EVENTTYPE_CHANNELDATAREADABLE) {
         // Flag we need to access received data and to close the HTTP channel

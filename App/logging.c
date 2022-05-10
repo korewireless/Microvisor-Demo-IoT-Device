@@ -135,29 +135,36 @@ int _write(int file, char *ptr, int length) {
     uint64_t usec = 0;
     enum MvStatus status = mvGetWallTime(&usec);
     if (status == MV_STATUS_OKAY) {
+        // Get the second and millisecond times
         time_t sec = (time_t)usec / 1000000;
         time_t msec = (time_t)usec / 1000;
+
+        // Write time string as "2022-05-10 13:30:58.XXX "
         strftime(timestamp, 64, "%F %T.XXX ", gmtime(&sec));
+
+        // Insert the millisecond time over the XXX
         sprintf(&timestamp[20], "%03u ", (unsigned)(msec % 1000));
     }
 
-    // Write out the time string. Each time confirm that Microvisor
+    // Write out the time string. Confirm that Microvisor
     // has accepted the request to write data to the channel.
-    uint32_t written_time;
-    status = mvWriteChannelStream(log_handles.channel, (const uint8_t*)timestamp, strlen(timestamp), &written_time);
-    if (status != MV_STATUS_OKAY) {
-        errno = EIO;
-        return -1;
+    uint32_t time_chars = 0;
+    size_t len = strlen(timestamp);
+    if (len > 0) {
+        status = mvWriteChannelStream(log_handles.channel, (const uint8_t*)timestamp, len, &time_chars);
+        if (status != MV_STATUS_OKAY) {
+            errno = EIO;
+            return -1;
+        }
     }
 
-    // Write out the message string. Each time confirm that Microvisor
+    // Write out the message string. Confirm that Microvisor
     // has accepted the request to write data to the channel.
-    uint32_t written_log;
-    status = mvWriteChannelStream(log_handles.channel, (const uint8_t*)ptr, length, &written_log);
+    uint32_t msg_chars = 0;
+    status = mvWriteChannelStream(log_handles.channel, (const uint8_t*)ptr, length, &msg_chars);
     if (status == MV_STATUS_OKAY) {
-        // Return the number of characters written
-        // out to the channel
-        return written_log + written_time;
+        // Return the number of characters written to the channel
+        return time_chars + msg_chars;
     } else {
         errno = EIO;
         return -1;

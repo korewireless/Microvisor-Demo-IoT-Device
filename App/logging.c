@@ -31,11 +31,11 @@ static volatile struct MvNotification log_notification_buffer[16];
 void log_open_channel(void) {
     // Configure the logging notification center
     log_channel_center_setup();
-    
+
     // Connect to the network
     // NOTE This connection spans logging and HTTP comms
     log_open_network();
-    
+
     // Configure and open the logging channel
     static volatile uint8_t receive_buffer[16];
     static volatile uint8_t send_buffer[512] __attribute__((aligned(512)));
@@ -55,7 +55,7 @@ void log_open_channel(void) {
             .endpoint_len = strlen(endpoint)
         }
     };
-    
+
     enum MvStatus status = mvOpenChannel(&channel_config, &log_handles.channel);
     if (status != MV_STATUS_OKAY) report_and_assert(ERR_LOG_CHANNEL_NOT_OPEN);
 }
@@ -129,14 +129,35 @@ int _write(int file, char *ptr, int length) {
         log_open_channel();
     }
 
+    // Prepare and add a timestamp if we can
+    // (if we can't, we show no time)
+    char timestamp[64] = {0};
+    uint64_t usec = 0;
+    enum MvStatus status = mvGetWallTime(&usec);
+    if (status == MV_STATUS_OKAY) {
+        time_t sec = (time_t)usec / 1000000;
+        time_t msec = (time_t)usec / 1000;
+        strftime(timestamp, 64, "%F %T.XXX ", gmtime(&sec));
+        sprintf(&timestamp[20], "%03u ", (unsigned)(msec % 1000));
+    }
+
+    // Write out the time string. Each time confirm that Microvisor
+    // has accepted the request to write data to the channel.
+    uint32_t written_time;
+    status = mvWriteChannelStream(log_handles.channel, (const uint8_t*)timestamp, strlen(timestamp), &written_time);
+    if (status != MV_STATUS_OKAY) {
+        errno = EIO;
+        return -1;
+    }
+
     // Write out the message string. Each time confirm that Microvisor
     // has accepted the request to write data to the channel.
-    uint32_t written;
-    enum MvStatus status = mvWriteChannelStream(log_handles.channel, (const uint8_t*)ptr, length, &written);
+    uint32_t written_log;
+    status = mvWriteChannelStream(log_handles.channel, (const uint8_t*)ptr, length, &written_log);
     if (status == MV_STATUS_OKAY) {
         // Return the number of characters written
         // out to the channel
-        return written;
+        return written_log + written_time;
     } else {
         errno = EIO;
         return -1;
@@ -151,14 +172,14 @@ void log_channel_center_setup() {
     if (log_handles.notification == 0) {
         // Clear the notification store
         memset((void *)log_notification_buffer, 0xff, sizeof(log_notification_buffer));
-        
+
         // Configure a notification center for network-centric notifications
         static struct MvNotificationSetup log_notification_config = {
             .irq = TIM1_BRK_IRQn,
             .buffer = (struct MvNotification *)log_notification_buffer,
             .buffer_size = sizeof(log_notification_buffer)
         };
-        
+
         // Ask Microvisor to establish the notification center
         // and confirm that it has accepted the request
         enum MvStatus status = mvSetupNotifications(&log_notification_config, &log_handles.notification);
@@ -223,5 +244,5 @@ MvNetworkHandle get_net_handle() {
  *  @brief Network notification ISR.
  */
 void TIM1_BRK_IRQHandler(void) {
-    
+
 }

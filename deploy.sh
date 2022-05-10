@@ -7,7 +7,7 @@
 #
 # @author    Tony Smith
 # @copyright 2022, Twilio
-# @version   1.2.0
+# @version   1.3.0
 # @license   MIT
 #
 
@@ -15,6 +15,7 @@
 do_log=0
 do_build=1
 do_deploy=1
+do_update=1
 zip_path="./build/App/mv-iot-device-demo.zip"
 
 # FUNCTIONS
@@ -48,6 +49,21 @@ build_app() {
     fi
 }
 
+update_build_number() {
+    build_val=$(grep 'set(BUILD_NUMBER "' App/CMakeLists.txt)
+    old_num=$(echo "$build_val" | cut -d '"' -s -f 2)
+    ((new_num=old_num+1))
+
+    if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+        sed -i "s|BUILD_NUMBER \"${old_num}\"|BUILD_NUMBER \"${new_num}\"|" App/CMakeLists.txt
+    elif [[ "$OSTYPE" == "darwin"* ]]; then
+        # macOS requires slightly different syntax from Unix
+        sed -i '' "s|BUILD_NUMBER \"${old_num}\"|BUILD_NUMBER \"${new_num}\"|" App/CMakeLists.txt
+    else
+        echo "[ERROR] Unknown OS... build number not incremented"
+    fi
+}
+
 # RUNTIME START
 for arg in "$@"; do
     check_arg=${arg,,}
@@ -68,6 +84,7 @@ for arg in "$@"; do
 done
 
 if [[ $do_build -eq 1 ]]; then
+    [[ $do_update -eq 1 ]] && update_build_number
     build_app
 fi
 
@@ -106,8 +123,5 @@ if [[ $do_deploy -eq 1 ]]; then
 fi
 
 # Start logging if requested to do so
-if [[ $do_log -eq 1 ]]; then
-    stream_log
-fi
-
+[[ $do_log -eq 1 ]] && stream_log
 exit 0

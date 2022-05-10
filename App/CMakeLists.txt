@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.14)
 # Set application data
 set(APP "Microvisor IoT Device Demo")
 set(VERSION_NUMBER "1.1.0")
-set(BUILD_NUMBER "16")
+set(BUILD_NUMBER "23")
 
 message("Building ${APP} ${VERSION_NUMBER} build ${BUILD_NUMBER}")
 
@@ -50,15 +50,15 @@ add_custom_command(OUTPUT EXTRA_FILES
 # Bundle with remote debugging key
 add_custom_command(OUTPUT REMOTE_DEBUG
     DEPENDS ${PROJECT_NAME}
-    COMMAND python3 ../../twilio-microvisor-tools/bundler-py/bundler.py "${PROJECT_NAME}.elf" --debug-auth-pubkey debug_auth_pub_key.pem "${PROJECT_NAME}.zip"
-    COMMAND rm -f ../../null.d
+    COMMAND python3 ${CMAKE_SOURCE_DIR}/twilio-microvisor-tools/bundler-py/bundler.py "${PROJECT_NAME}.elf" --debug-auth-pubkey debug_auth_pub_key.pem "${PROJECT_NAME}.zip"
+    COMMAND rm -f ${CMAKE_SOURCE_DIR}/null.d
 )
 
 # Bundle without remote debugging key
 add_custom_command(OUTPUT NO_REMOTE_DEBUG
     DEPENDS ${PROJECT_NAME}
-    COMMAND python3 ../../twilio-microvisor-tools/bundler-py/bundler.py "${PROJECT_NAME}.elf" "${PROJECT_NAME}.zip"
-    COMMAND rm -f ../../null.d
+    COMMAND python3 ${CMAKE_SOURCE_DIR}/twilio-microvisor-tools/bundler-py/bundler.py "${PROJECT_NAME}.elf" "${PROJECT_NAME}.zip"
+    COMMAND rm -f ${CMAKE_SOURCE_DIR}/null.d
 )
 
 # Generate remote debugging auth keys
@@ -66,7 +66,7 @@ add_custom_command(OUTPUT GEN_KEYS
     COMMAND openssl ecparam -name prime256v1 -genkey -noout -out debug_auth_priv_key.pem 2>/dev/null
     COMMAND openssl ec -in debug_auth_priv_key.pem -pubout -out debug_auth_pub_key.pem 2>/dev/null
 )
-    
+
 find_program(OPENSSL "openssl")
 if(NOT OPENSSL)
     # No OpenSSL so can't do debug build

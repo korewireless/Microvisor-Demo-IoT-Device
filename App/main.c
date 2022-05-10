@@ -27,7 +27,7 @@ const osThreadAttr_t led_task_attributes = {
 osThreadId_t IOTTask;
 const osThreadAttr_t iot_task_attributes = {
     .name = "IOTTask",
-    .stack_size = 1024,
+    .stack_size = 1512,
     .priority = (osPriority_t) osPriorityNormal
 };
 
@@ -70,20 +70,20 @@ int main(void) {
     // Initialize the peripherals
     GPIO_init();
     I2C_init();
-    
+
     // FROM 1.1.0
     // Signal app start on LED
     if (use_i2c) {
         // Set up the display if it's available
         HT16K33_init();
-        
+
         // Write 'boot' to the LED
         HT16K33_set_glyph(0x7C, 0, false);
         HT16K33_set_glyph(0x5C, 1, false);
         HT16K33_set_glyph(0x5C, 2, false);
         HT16K33_set_glyph(0x78, 3, false);
         HT16K33_draw();
-        
+
         // Wait 1.5 seconds
         uint32_t tick = HAL_GetTick();
         while (HAL_GetTick() - tick < 1500) {
@@ -178,7 +178,7 @@ void start_led_task(void *argument) {
         if (http_handles.network != 0) {
             enum MvNetworkStatus net_state = MV_NETWORKSTATUS_DELIBERATELYOFFLINE;
             enum MvStatus status = mvGetNetworkStatus(http_handles.network, &net_state);
-            
+
             if (status == MV_STATUS_OKAY) {
                 is_connected = (net_state != MV_NETWORKSTATUS_DELIBERATELYOFFLINE);
             }
@@ -186,11 +186,12 @@ void start_led_task(void *argument) {
             is_connected = false;
             http_handles.network = get_net_handle();
         }
-        
+
         // Periodically update the display and flash the USER LED
         if (tick - last_tick > DEFAULT_TASK_PAUSE_MS) {
-            last_tick = tick;
+            // Flip the USER LED
             HAL_GPIO_TogglePin(LED_GPIO_BANK, LED_GPIO_PIN);
+            last_tick = tick;
 
             if (use_i2c) {
                 if (show_count) {
@@ -246,7 +247,7 @@ void start_iot_task(void *argument) {
                 printf("\n[DEBUG] Temperature: %.02f\n", temp);
                 HT16K33_set_point(0, true);
                 HT16K33_draw();
-                
+
                 // No channel open? Try and send the temperature
                 if (http_handles.channel == 0 && http_open_channel()) {
                     bool result = http_send_request(temp);
@@ -304,7 +305,7 @@ void report_and_assert(uint16_t err_code) {
     HT16K33_set_glyph(0x79, 0, false);
     HT16K33_set_glyph(0x00, 1, false);
     HT16K33_draw();
-    
+
     // Halt everything
     vTaskSuspendAll();
     assert(false);

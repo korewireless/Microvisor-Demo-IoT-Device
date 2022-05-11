@@ -67,9 +67,10 @@ add_custom_command(OUTPUT GEN_KEYS
     COMMAND openssl ec -in debug_auth_priv_key.pem -pubout -out debug_auth_pub_key.pem 2>/dev/null
 )
 
+# Prepare for remote debugging
 find_program(OPENSSL "openssl")
 if(NOT OPENSSL)
-    # No OpenSSL so can't do debug build
+    # No OpenSSL so can't do debug builds
     message(WARNING "OpenSSL could not be found... cannot enable remote debugging")
     set(ENABLE_REMOTE 0)
 endif()

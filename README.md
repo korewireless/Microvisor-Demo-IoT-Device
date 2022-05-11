@@ -29,6 +29,20 @@ To subsequently update the submodules to their most recent commits, run:
 git submodule update --remote --recursive
 ```
 
+## Remote debugging
+
+This release supports remote debugging. Builds are enabled for remote debugging automatically. Change the value of the line
+
+```
+set(ENABLE_REMOTE 1)
+```
+
+in the root `CMakeLists.txt` file to `0` to disable this.
+
+Enabling remote debugging in the build does not initiate a GDB session — you will have to do this manually. Follow the instructions in the [Microvisor documentation](https://www.twilio.com/docs/iot/microvisor/microvisor-remote-debugging) **Private Beta participants only**
+
+**Note** The file `app/CMakeLists.txt` generates new remote debugging keys at each build. These are placed in the `/build/app` directory, which is ignored for git commits.
+
 ## Requirements
 
 You will need a Twilio account. [Sign up now if you don’t have one](https://www.twilio.com/try-twilio).
@@ -62,7 +76,7 @@ Under Ubuntu, run the following:
 ```bash
 sudo apt install gcc-arm-none-eabi binutils-arm-none-eabi git \
                  python3 python3-pip build-essential protobuf-compiler \
-                 cmake libsecret-1-dev curl jq
+                 cmake libsecret-1-dev curl jq openssl
 ```
 
 Now run:

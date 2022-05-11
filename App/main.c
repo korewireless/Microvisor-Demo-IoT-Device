@@ -27,7 +27,7 @@ const osThreadAttr_t led_task_attributes = {
 osThreadId_t IOTTask;
 const osThreadAttr_t iot_task_attributes = {
     .name = "IOTTask",
-    .stack_size = 1512,
+    .stack_size = 1536,
     .priority = (osPriority_t) osPriorityNormal
 };
 

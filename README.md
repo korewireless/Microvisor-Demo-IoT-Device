@@ -169,7 +169,13 @@ The `--log` flag initiates log-streaming.
 You can start log streaming separately — for example, in a second terminal window — with this command:
 
 ```bash
-twilio microvisor:logs:stream ${MV_DEVICE_SID}
+./deploy.sh -k
+```
+
+For more information, run
+
+```bash
+./deploy.sh --help
 ```
 
 ## Remote Debugging

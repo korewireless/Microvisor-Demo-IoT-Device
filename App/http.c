@@ -1,7 +1,7 @@
 /**
  *
  * Microvisor IoT Device Demo
- * Version 1.1.0
+ * * Version 1.2.0
  * Copyright © 2022, Twilio
  * Licence: Apache 2.0
  *
@@ -69,7 +69,7 @@ bool http_open_channel(void) {
     } else {
         printf("[ERROR] HTTP channel opening failed. Status: %i\n", status);
     }
-    
+
     return false;
 }
 

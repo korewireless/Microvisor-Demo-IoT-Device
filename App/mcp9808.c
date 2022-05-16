@@ -1,7 +1,7 @@
 /**
  *
  * Microvisor IoT Device Demo
- * Version 1.1.0
+ * * Version 1.2.0
  * Copyright © 2022, Twilio
  * Licence: Apache 2.0
  *
@@ -14,7 +14,7 @@ extern I2C_HandleTypeDef i2c;
 
 /**
     @brief  Check the device is connected and operational.
- 
+
     @returns `true` if we can read values and they are right,
              otherwise `false`.
  */
@@ -45,7 +45,7 @@ bool MCP9808_init() {
 
 /**
     @brief  Check the device is connected and operational.
- 
+
     @returns `true` if the sensor is correct, otherwise `false`.
  */
 double MCP9808_read_temp() {

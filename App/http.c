@@ -1,7 +1,7 @@
 /**
  *
  * Microvisor IoT Device Demo
- * * Version 1.2.0
+ * Version 1.2.1
  * Copyright © 2022, Twilio
  * Licence: Apache 2.0
  *
@@ -41,7 +41,7 @@ bool http_open_channel(void) {
     //      (ie. so the network handle != 0) well in advance of this being called
     http_handles.network = get_net_handle();
     if (http_handles.network == 0) return false;
-    printf("[DEBUG] Network handle: %lu\n", (uint32_t)http_handles.network);
+    server_log("Network handle: %lu", (uint32_t)http_handles.network);
 
     // Configure the required data channel
     struct MvOpenChannelParams channel_config = {
@@ -64,10 +64,10 @@ bool http_open_channel(void) {
     // and confirm that it has accepted the request
     enum MvStatus status = mvOpenChannel(&channel_config, &http_handles.channel);
     if (status == MV_STATUS_OKAY) {
-        printf("[DEBUG] HTTP channel handle: %lu\n", (uint32_t)http_handles.channel);
+        server_log("HTTP channel handle: %lu", (uint32_t)http_handles.channel);
         return true;
     } else {
-        printf("[ERROR] HTTP channel opening failed. Status: %i\n", status);
+        server_error("HTTP channel opening failed. Status: %i", status);
     }
 
     return false;
@@ -83,7 +83,7 @@ void http_close_channel(void) {
     // the closure request.
     if (http_handles.channel != 0) {
         enum MvStatus status = mvCloseChannel(&http_handles.channel);
-        printf("[DEBUG] HTTP channel closed\n");
+        server_log("HTTP channel closed");
         if (status != MV_STATUS_OKAY && status != MV_STATUS_CHANNELCLOSED) report_and_assert(ERR_CHANNEL_NOT_CLOSED);
     }
 
@@ -117,7 +117,7 @@ void http_channel_center_setup(void) {
     // Start the notification IRQ
     NVIC_ClearPendingIRQ(TIM8_BRK_IRQn);
     NVIC_EnableIRQ(TIM8_BRK_IRQn);
-    printf("[DEBUG] Notification center handle: %lu\n", (uint32_t)http_handles.notification);
+    server_log("Notification center handle: %lu", (uint32_t)http_handles.notification);
 }
 
 
@@ -129,7 +129,7 @@ void http_channel_center_setup(void) {
 bool http_send_request(double temp) {
     // Check for a valid channel handle
     if (http_handles.channel != 0) {
-        printf("[DEBUG] Sending HTTP request\n");
+        server_log("Sending HTTP request");
 
         char* base = malloc(40 * sizeof(char));
         sprintf(base, "{\"temp\":%.02f}", temp);
@@ -164,12 +164,12 @@ bool http_send_request(double temp) {
         // Issue the request -- and check its status
         enum MvStatus status = mvSendHttpRequest(http_handles.channel, &request_config);
         if (status == MV_STATUS_OKAY) {
-            printf("[DEBUG] Request sent to Twilio\n");
+            server_log("Request sent to Twilio");
             return true;
         }
 
         // Report send failure
-        printf("[ERROR] Could not issue request. Status: %i\n", status);
+        server_error("Could not issue request. Status: %i", status);
         return false;
     }
 
@@ -200,20 +200,20 @@ void http_process_response(void) {
                 status = mvReadHttpResponseBody(http_handles.channel, 0, buffer, resp_data.body_length);
                 if (status == MV_STATUS_OKAY) {
                     // Retrieved the body data successfully so log it
-                    printf("[DEBUG] HTTP response header count: %lu\n", resp_data.num_headers);
-                    printf("[DEBUG] HTTP response body length: %lu\n", resp_data.body_length);
+                    server_log("HTTP response header count: %lu", resp_data.num_headers);
+                    server_log("HTTP response body length: %lu", resp_data.body_length);
                     printf("%s\n", buffer);
                 } else {
-                    printf("[ERROR] HTTP response body read status %i\n", status);
+                    server_error("HTTP response body read status %i", status);
                 }
             } else {
-                printf("[ERROR] HTTP status code: %lu\n", resp_data.status_code);
+                server_error("HTTP status code: %lu", resp_data.status_code);
             }
         } else {
-            printf("[ERROR] Request failed. Status: %i\n", resp_data.result);
+            server_error("Request failed. Status: %i", resp_data.result);
         }
     } else {
-        printf("[ERROR] Response data read failed. Status: %i\n", status);
+        server_error("Response data read failed. Status: %i", status);
     }
 }
 
@@ -227,7 +227,6 @@ void http_process_response(void) {
 void TIM8_BRK_IRQHandler(void) {
     // Get the event type
     enum MvEventType event_kind = http_notification_center->event_type;
-    // printf("[DEBUG] Channel notification center IRQ called for event: %u\n", event_kind);
 
     if (event_kind == MV_EVENTTYPE_CHANNELDATAREADABLE) {
         // Flag we need to access received data and to close the HTTP channel

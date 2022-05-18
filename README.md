@@ -1,4 +1,4 @@
-# Twilio Microvisor IoT Device Demo 1.2.0
+# Twilio Microvisor IoT Device Demo 1.2.1
 
 This repo provides a basic demonstration of a sample IoT device application. It makes use of a temperature sensor and four-digit display to periodically read and present the local temperature. It transmits the data to a mock API.
 
@@ -36,14 +36,14 @@ git submodule update --remote --recursive
 This release supports remote debugging. Builds are enabled for remote debugging automatically. Change the value of the line
 
 ```
-set(ENABLE_REMOTE 1)
+set(ENABLE_REMOTE_DEBUGGING 1)
 ```
 
 in the root `CMakeLists.txt` file to `0` to disable this.
 
 Enabling remote debugging in the build does not initiate a GDB session — you will have to do this manually. Follow the instructions in the [Microvisor documentation](https://www.twilio.com/docs/iot/microvisor/microvisor-remote-debugging) **Private Beta participants only**
 
-**Note** The file `app/CMakeLists.txt` generates new remote debugging keys at each build. These are placed in the `/build/app` directory, which is ignored for git commits.
+**Note** The file `App/CMakeLists.txt` generates new remote debugging keys at each build. These are placed in the `/build/App` directory, which is ignored for git commits.
 
 ## Requirements
 
@@ -144,17 +144,7 @@ This will yield JSON which contains a `device` array — your Microvisor Nucleo 
     export MVIOT_URL=https://<YOUR_ENDPOINT_NAME>.free.beeceptor.com/api/v1/data
     ```
 
-## Build the Application Demo Code
-
-Build the sample code with:
-
-```bash
-cd microvisor-iot-demo
-cmake -S . -B build/
-cmake --build build --clean-first
-```
-
-## Deploy the Application
+## Build and Deploy the Application
 
 Run:
 
@@ -162,7 +152,7 @@ Run:
 ./deploy.sh --log
 ```
 
-This will upload the build and stage it for deployment to your device. If you encounter errors, please check your stored Twilio credentials.
+This will compile, bundle and upload the code, and stage it for deployment to your device. If you encounter errors, please check your stored Twilio credentials.
 
 The `--log` flag initiates log-streaming.
 
@@ -179,12 +169,6 @@ For more information, run
 ```bash
 ./deploy.sh --help
 ```
-
-## Remote Debugging
-
-Remote debugging is not enabled by default. To enable it, edit the root `CMakeLists.txt` file and change the line `set(ENABLE_REMOTE 0)` to `set(ENABLE_REMOTE 1)`.
-
-This will cause remote debugging authentication keys to be generated and the public key added to the geneerated app bundle. You can then use GDB to remotely control the code. For more details, including software setup guidance, see [**Microvisor Remote Debugging**](https://twilio.com/docs/iot/microvisor/microvisor-remote-debugging).
 
 ## Copyright and Licensing
 

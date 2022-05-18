@@ -1,7 +1,7 @@
 /**
  *
  * Microvisor IoT Device Demo
- * * Version 1.2.0
+ * Version 1.2.1
  * Copyright © 2022, Twilio
  * Licence: Apache 2.0
  *
@@ -30,7 +30,7 @@ void I2C_init() {
 
     // Initialize the I2C itself with the i2c handle
     if (HAL_I2C_Init(&i2c) != HAL_OK) {
-        printf("[ERROR] I2C init failed\n");
+        server_error("I2C init failed");
         return;
     }
 
@@ -48,8 +48,8 @@ bool I2C_check(uint8_t addr) {
             return true;
         } else {
             uint32_t err = HAL_I2C_GetError(&i2c);
-            printf("[ERROR] HAL_I2C_IsDeviceReady() : %i\n", status);
-            printf("[ERROR] HAL_I2C_GetError():       %li\n", err);
+            server_error("HAL_I2C_IsDeviceReady() : %i", status);
+            server_error("HAL_I2C_GetError():       %li", err);
         }
 
         // Flash the LED eight times on device not ready
@@ -87,7 +87,7 @@ void HAL_I2C_MspInit(I2C_HandleTypeDef *i2c) {
 
     // Initialize U5 peripheral clock
     if (HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit) != HAL_OK) {
-        printf("[ERROR] HAL_RCCEx_PeriphCLKConfig() failed\n");
+        server_error("HAL_RCCEx_PeriphCLKConfig() failed");
         return;
     }
 

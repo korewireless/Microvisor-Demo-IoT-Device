@@ -1,7 +1,7 @@
 /**
  *
  * Microvisor IoT Device Demo
- * * Version 1.2.0
+ * Version 1.2.1
  * Copyright © 2022, Twilio
  * Licence: Apache 2.0
  *
@@ -36,7 +36,7 @@ bool MCP9808_init() {
     // Bytes to integers
     const uint16_t mid_value = (mid_data[0] << 8) | mid_data[1];
     const uint16_t did_value = (did_data[0] << 8) | did_data[1];
-    printf("[DEBUG] MCP9808 MID: 0x%04x, DID: 0x%04x\n", mid_value, did_value);
+    server_log("MCP9808 MID: 0x%04x, DID: 0x%04x", mid_value, did_value);
 
     // Returns true if the device is initialized, false otherwise.
     return (mid_value == 0x0054 && did_value == 0x0400);

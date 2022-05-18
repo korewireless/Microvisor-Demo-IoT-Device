@@ -1,7 +1,7 @@
 /**
  *
  * Microvisor IoT Device Demo
- * * Version 1.2.0
+ * Version 1.2.1
  * Copyright © 2022, Twilio
  * Licence: Apache 2.0
  *
@@ -17,6 +17,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include <unistd.h>
 #include <errno.h>
 #include <time.h>
@@ -81,10 +82,14 @@ extern "C" {
  */
 void        system_clock_config(void);
 void        GPIO_init(void);
+
 void        start_led_task(void *argument);
 void        start_iot_task(void *argument);
+
 void        log_device_info(void);
 void        report_and_assert(uint16_t err_code);
+void        server_log(char* format_string, ...);
+void        server_error(char* format_string, ...);
 
 
 #ifdef __cplusplus

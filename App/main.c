@@ -41,10 +41,8 @@ I2C_HandleTypeDef i2c;
  */
 volatile bool use_i2c = false;
 volatile bool got_sensor = false;
-volatile bool show_count = false;
 volatile bool request_recv = false;
 volatile bool is_connected = false;
-volatile uint16_t counter = 0;
 volatile double temp = 0.0;
 
 /**
@@ -194,16 +192,9 @@ void start_led_task(void *argument) {
             last_tick = tick;
 
             if (use_i2c) {
-                if (show_count) {
-                    HT16K33_show_value(counter, false);
-                } else {
-                    HT16K33_show_value((uint16_t)(temp * 100), true);
-                    HT16K33_set_alpha('c', 3, !is_connected);
-                }
-
+                HT16K33_show_value((uint16_t)(temp * 100), true);
+                HT16K33_set_alpha('c', 3, !is_connected);
                 HT16K33_draw();
-                counter++;
-                if (counter > 9999) counter = 0;
             }
         }
 

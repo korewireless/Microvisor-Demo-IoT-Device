@@ -1,4 +1,4 @@
-# Twilio Microvisor IoT Device Demo 1.2.1
+# Twilio Microvisor IoT Device Demo 1.3.0
 
 This repo provides a basic demonstration of a sample IoT device application. It makes use of a temperature sensor and four-digit display to periodically read and present the local temperature. It transmits the data to a mock API.
 
@@ -170,7 +170,15 @@ Enabling remote debugging in the build does not initiate a GDB session — you w
 
 This repo contains a `.gdbinit` file which sets the remote target to localhost on port 8001 to match the Twilio CLI Microvisor plugin remote debugging defaults.
 
-**Note** The file `app/CMakeLists.txt` generates new remote debugging keys at each build. These are placed in the `/build/app` directory, which is ignored for git commits.
+#### Remote Debugging Encryption
+
+Remote debugging sessions are now encrypted. The file `app/CMakeLists.txt` generates new remote debugging keys at each build. These are placed in the `/build/app` directory, which is ignored for git commits. You will need to pass the path to the private key to the Twilio CLI Microvisor plugin to decrypt debugging data. The deploy script will output this path for you.
+
+Alternatively, generate the keys manually and pass their locations to the deploy script:
+
+```shell
+./deploy.sh --private-key /path/to/private/key.pem --public-key /path/to/public/key.pem
+```
 
 ## Copyright and Licensing
 

@@ -7,7 +7,7 @@
 #
 # @author    Tony Smith
 # @copyright 2022, Twilio
-# @version   1.5.0
+# @version   1.5.1
 # @license   MIT
 #
 
@@ -16,10 +16,10 @@ do_log=0
 do_build=1
 do_deploy=1
 do_update=1
-zip_path="./build/App/mv-iot-device-demo.zip"
-cmake_path="App/CMakeLists.txt"
-private_key_path=NONE
 public_key_path=NONE
+private_key_path="app/debug_auth_priv_key.pem"
+zip_path="App/mv-iot-device-demo.zip"
+cmake_path="App/CMakeLists.txt"
 
 # FUNCTIONS
 show_help() {
@@ -58,7 +58,7 @@ build_app() {
 }
 
 update_build_number() {
-    build_val=$(grep 'set(BUILD_NUMBER "' App/CMakeLists.txt)
+    build_val=$(grep 'set(BUILD_NUMBER "' ${cmake_path})
     old_num=$(echo "${build_val}" | cut -d '"' -s -f 2)
     ((new_num=old_num+1))
 
@@ -76,44 +76,44 @@ update_build_number() {
 arg_is_value=0
 for arg in "$@"; do
     check_arg=${arg,,}
-    if [[ $arg_is_value -gt 0 ]]; then
-        case "$arg_is_value" in
-            1) private_key_path="$arg" ; echo "Remote Debugging private key: ${private_key_path}" ;;
-            2) public_key_path="$arg"  ; echo "Remote Debugging public key: ${public_key_path}"   ;;
+    if [[ ${arg_is_value} -gt 0 ]]; then
+        case "${arg_is_value}" in
+            1) private_key_path="${arg}" ; echo "Remote Debugging private key: ${private_key_path}" ;;
+            2) public_key_path="${arg}"  ; echo "Remote Debugging public key: ${public_key_path}"   ;;
             *) echo "[Error] Unknown argument" exit 1 ;;
         esac
         arg_is_value=0
         continue
     fi
 
-    if [[ "$check_arg" = "--log" || "$check_arg" = "-l" ]]; then
+    if [[ "${check_arg}" = "--log" || "${check_arg}" = "-l" ]]; then
         do_log=1
-    elif [[ "$check_arg" = "--private-key" ]]; then
+    elif [[ "${check_arg}" = "--private-key" ]]; then
         arg_is_value=1
         continue
-    elif [[ "$check_arg" = "--public-key" ]]; then
+    elif [[ "${check_arg}" = "--public-key" ]]; then
         arg_is_value=2
         continue
-    elif [[ "$check_arg" = "-k" ]]; then
+    elif [[ "${check_arg}" = "-k" ]]; then
         do_log=1
         do_deploy=0
         do_build=0
-    elif [[ "$check_arg" = "-d" ]]; then
+    elif [[ "${check_arg}" = "-d" ]]; then
         do_build=0
-    elif [[ "$check_arg" = "--help" || "$check_arg" = "-h" ]]; then
+    elif [[ "${check_arg}" = "--help" || "${check_arg}" = "-h" ]]; then
         show_help
         exit 0
     else
-        zip_path="$arg"
+        zip_path="${arg}"
     fi
 done
 
-if [[ $do_build -eq 1 ]]; then
-    [[ $do_update -eq 1 ]] && update_build_number
+if [[ ${do_build} -eq 1 ]]; then
+    [[ ${do_update} -eq 1 ]] && update_build_number
     build_app
 fi
 
-if [[ $do_deploy -eq 1 ]]; then
+if [[ ${do_deploy} -eq 1 ]]; then
     # Check we have what looks like a bundle
     extension="${zip_path##*.}"
     if [[ "${extension}" != "zip" ]]; then
@@ -122,8 +122,8 @@ if [[ $do_deploy -eq 1 ]]; then
     fi
 
     # Try to upload the bundle
-    echo "Uploading ${zip_path}..."
-    upload_action=$(curl -X POST https://microvisor-upload.twilio.com/v1/Apps -H "Content-Type: multipart/form-data" -u "${TWILIO_API_KEY}:${TWILIO_API_SECRET}" -s -F File=@"${zip_path}")
+    echo "Uploading build/${zip_path}..."
+    upload_action=$(curl -X POST https://microvisor-upload.twilio.com/v1/Apps -H "Content-Type: multipart/form-data" -u "${TWILIO_API_KEY}:${TWILIO_API_SECRET}" -s -F File=@"build/${zip_path}")
 
     app_sid=$(echo "${upload_action}" | jq -r '.sid')
 
@@ -141,7 +141,7 @@ if [[ $do_deploy -eq 1 ]]; then
         else
             echo "[ERROR] Could not assign app ${app_sid} to device ${MV_DEVICE_SID}"
             echo "Response from server:"
-            echo "$update_action"
+            echo "${update_actio}n"
             exit 1
         fi
     fi
@@ -152,12 +152,12 @@ rm -f null.d
 
 # Dump remote debugging command if we can
 echo -e "\nUse the following command to initiate remote debugging:"
-if [[ "${private_key_path}" != "NONE" ]]; then
+if [[ "${public_key_path}" != "NONE" ]]; then
     echo "twilio microvisor:debug ${MV_DEVICE_SID} '${private_key_path}'"
 else
-    echo "twilio microvisor:debug ${MV_DEVICE_SID} '$(pwd)/build/App/debug_auth_priv_key.pem'"
+    echo "twilio microvisor:debug ${MV_DEVICE_SID} '$(pwd)/build/${private_key_path}'"
 fi
 
 # Start logging if requested to do so
-[[ $do_log -eq 1 ]] && stream_log
+[[ ${do_log} -eq 1 ]] && stream_log
 exit 0

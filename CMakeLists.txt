@@ -10,7 +10,7 @@ set(PUB_KEY_PATH "debug_auth_pub_key.pem")
 # Set to false to stop '[DEBUG]' messages being logged
 add_compile_definitions(LOG_DEBUG_MESSAGES=true)
 
-set(CMAKE_TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/toolchain.cmake")
+set(CMAKE_TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/twilio-microvisor-hal-stm32u5/toolchain.cmake")
 
 project(${PROJECT_NAME} C CXX ASM)
 

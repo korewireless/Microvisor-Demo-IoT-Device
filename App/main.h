@@ -1,7 +1,7 @@
 /**
  *
  * Microvisor IoT Device Demo
- * Version 1.3.3
+ * Version 1.3.4
  * Copyright © 2022, Twilio
  * Licence: Apache 2.0
  *
@@ -21,6 +21,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <time.h>
+#include <assert.h>
 
 // Microvisor includes
 #include "stm32u5xx_hal.h"

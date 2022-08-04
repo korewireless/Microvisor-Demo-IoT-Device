@@ -1,7 +1,7 @@
 /**
  *
  * Microvisor IoT Device Demo
- * Version 1.3.4
+ * Version 2.0.0
  * Copyright © 2022, Twilio
  * Licence: Apache 2.0
  *
@@ -71,7 +71,7 @@ void I2C_Scan() {
     uint8_t data = 0;
     for (uint8_t i = 2 ; i < 256 ; i += 2) {
         if (HAL_I2C_Master_Receive(&i2c, i , &data, 1, 10) == HAL_OK) {
-            printf("I2C device at %02x", i);
+            server_log("I2C device at %02x", i);
         }
     }
 }

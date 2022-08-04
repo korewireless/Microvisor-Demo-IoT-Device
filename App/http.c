@@ -1,7 +1,7 @@
 /**
  *
  * Microvisor IoT Device Demo
- * Version 1.3.4
+ * Version 2.0.0
  * Copyright © 2022, Twilio
  * Licence: Apache 2.0
  *
@@ -193,6 +193,9 @@ void http_process_response(void) {
         // the request was successful (status code 200)
         if (resp_data.result == MV_HTTPRESULT_OK) {
             if (resp_data.status_code == 200) {
+                server_log("HTTP response header count: %lu", resp_data.num_headers);
+                server_log("HTTP response body length: %lu", resp_data.body_length);
+                
                 // Set up a buffer that we'll get Microvisor to write
                 // the response body into
                 uint8_t buffer[resp_data.body_length + 1];
@@ -200,9 +203,7 @@ void http_process_response(void) {
                 status = mvReadHttpResponseBody(http_handles.channel, 0, buffer, resp_data.body_length);
                 if (status == MV_STATUS_OKAY) {
                     // Retrieved the body data successfully so log it
-                    server_log("HTTP response header count: %lu", resp_data.num_headers);
-                    server_log("HTTP response body length: %lu", resp_data.body_length);
-                    printf("%s\n", buffer);
+                    server_log("Message body:\n%s", buffer);
                 } else {
                     server_error("HTTP response body read status %i", status);
                 }

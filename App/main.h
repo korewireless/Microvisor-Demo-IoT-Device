@@ -1,7 +1,7 @@
 /**
  *
  * Microvisor IoT Device Demo
- * Version 1.3.4
+ * Version 2.0.0
  * Copyright © 2022, Twilio
  * Licence: Apache 2.0
  *
@@ -89,8 +89,6 @@ void        start_iot_task(void *argument);
 
 void        log_device_info(void);
 void        report_and_assert(uint16_t err_code);
-void        server_log(char* format_string, ...);
-void        server_error(char* format_string, ...);
 
 
 #ifdef __cplusplus

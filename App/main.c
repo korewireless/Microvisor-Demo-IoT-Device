@@ -1,7 +1,7 @@
 /**
  *
  * Microvisor IoT Device Demo
- * Version 1.3.4
+ * Version 2.0.0
  * Copyright © 2022, Twilio
  * Licence: Apache 2.0
  *
@@ -235,8 +235,7 @@ void start_iot_task(void *argument) {
             if (tick - read_tick > SENSOR_READ_PERIOD_MS) {
                 // Read the sensor every x seconds
                 read_tick = tick;
-                printf("\n");
-                server_log("Temperature: %.02f", temp);
+                server_log("\nTemperature: %.02f", temp);
                 HT16K33_set_point(0, true);
                 HT16K33_draw();
 
@@ -283,7 +282,7 @@ void start_iot_task(void *argument) {
 void log_device_info(void) {
     uint8_t buffer[35] = { 0 };
     mvGetDeviceId(buffer, 34);
-    printf("Device: %s\n   App: %s %s\n Build: %i\n", buffer, APP_NAME, APP_VERSION, BUILD_NUM);
+    server_log("Device: %s\n   App: %s %s\n Build: %i", buffer, APP_NAME, APP_VERSION, BUILD_NUM);
 }
 
 
@@ -301,38 +300,4 @@ void report_and_assert(uint16_t err_code) {
     // Halt everything
     vTaskSuspendAll();
     assert(false);
-}
-
-
-/**
- * @brief Issue debug message.
- *
- * @param format_string Message string with optional formatting
- * @param ...           Optional injectable values
- */
-void server_log(char* format_string, ...) {
-    if (LOG_DEBUG_MESSAGES) {
-        va_list args;
-        char buffer[512] = "[DEBUG] ";
-        va_start(args, format_string);
-        vsprintf(&buffer[8], format_string, args);
-        va_end(args);
-        printf("%s\n", buffer);
-    }
-}
-
-
-/**
- * @brief Issue error message.
- *
- * @param format_string Message string with optional formatting
- * @param ...           Optional injectable values
- */
-void server_error(char* format_string, ...) {
-    va_list args;
-    char buffer[512] = "[ERROR] ";
-    va_start(args, format_string);
-    vsprintf(&buffer[8], format_string, args);
-    va_end(args);
-    printf("%s\n", buffer);
 }

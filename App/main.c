@@ -235,7 +235,7 @@ void start_iot_task(void *argument) {
             if (tick - read_tick > SENSOR_READ_PERIOD_MS) {
                 // Read the sensor every x seconds
                 read_tick = tick;
-                server_log("\nTemperature: %.02f", temp);
+                server_log("Temperature: %.02fc", temp);
                 HT16K33_set_point(0, true);
                 HT16K33_draw();
 

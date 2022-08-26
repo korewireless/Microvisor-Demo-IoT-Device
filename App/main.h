@@ -33,6 +33,7 @@
 #include "ht16k33.h"
 #include "i2c.h"
 #include "mcp9808.h"
+#include "lis3dh.h"
 #include "http.h"
 
 

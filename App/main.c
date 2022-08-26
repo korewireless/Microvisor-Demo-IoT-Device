@@ -40,7 +40,8 @@ I2C_HandleTypeDef i2c;
  *  doesn't render them immutable at runtime
  */
 volatile bool use_i2c = false;
-volatile bool got_sensor = false;
+volatile bool got_sensor_temp = false;
+volatile bool got_sensor_accl = false;
 volatile bool request_recv = false;
 volatile bool is_connected = false;
 volatile double temp = 0.0;
@@ -217,19 +218,27 @@ void start_iot_task(void *argument) {
     http_channel_center_setup();
 
     // Prep the sensor (if present)
-    got_sensor = MCP9808_init();
-    if (got_sensor) temp = MCP9808_read_temp();
+    got_sensor_temp = MCP9808_init();
+    got_sensor_accl = LIS3DH_init();
+    if (got_sensor_temp) temp = MCP9808_read_temp();
+    if (got_sensor_accl) {
+        LIS3DH_set_mode(LIS3DH_MODE_NORMAL);
+        LIS3DH_set_data_rate(25);
+        LIS3DH_enable(true);
+    }
 
     // Time trackers
     uint32_t read_tick = 0;
     uint32_t kill_time = 0;
     bool close_channel = false;
+    
+    AccelResult accel;
 
     // Run the thread's main loop
     while (true) {
         uint32_t tick = HAL_GetTick();
 
-        if (got_sensor) {
+        if (got_sensor_temp) {
             temp = MCP9808_read_temp();
 
             if (tick - read_tick > SENSOR_READ_PERIOD_MS) {
@@ -247,9 +256,14 @@ void start_iot_task(void *argument) {
                 } else {
                     server_error("Channel handle not zero");
                 }
+                
+                if (got_sensor_accl) {
+                    LIS3DH_get_accel(&accel);
+                    server_log("Acceleration (G) X:%0.2f, Y:%0.2f, Z:%0.2f", accel.x, accel.y, accel.z);
+                }
             }
         }
-
+        
         // Process a request's response if indicated by the ISR
         if (request_recv) {
             http_process_response();

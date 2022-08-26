@@ -13,10 +13,10 @@ extern I2C_HandleTypeDef i2c;
 
 
 /**
-    @brief  Check the device is connected and operational.
-
-    @returns `true` if we can read values and they are right,
-             otherwise `false`.
+ *  @brief  Check the device is connected and operational.
+ *
+ *  @returns `true` if we can read values and they are right,
+ *           otherwise `false`.
  */
 bool MCP9808_init() {
     // Prep data storage buffers
@@ -36,7 +36,7 @@ bool MCP9808_init() {
     // Bytes to integers
     const uint16_t mid_value = (mid_data[0] << 8) | mid_data[1];
     const uint16_t did_value = (did_data[0] << 8) | did_data[1];
-    server_log("MCP9808 MID: 0x%04x, DID: 0x%04x", mid_value, did_value);
+    server_log("MCP9808 Manufacturer ID: 0x%04x, Device ID: 0x%04x", mid_value, did_value);
 
     // Returns true if the device is initialized, false otherwise.
     return (mid_value == 0x0054 && did_value == 0x0400);
@@ -44,9 +44,9 @@ bool MCP9808_init() {
 
 
 /**
-    @brief  Check the device is connected and operational.
-
-    @returns `true` if the sensor is correct, otherwise `false`.
+ *  @brief  Check the device is connected and operational.
+ *
+ *  @returns `true` if the sensor is correct, otherwise `false`.
  */
 double MCP9808_read_temp() {
     // Read sensor and return its value in degrees celsius.

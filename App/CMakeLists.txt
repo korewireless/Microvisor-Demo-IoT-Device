@@ -29,6 +29,7 @@ add_executable(${PROJECT_NAME}
     i2c.c
     logging.c
     mcp9808.c
+    lis3dh.c
     stm32u5xx_hal_timebase_tim_template.c
 )
 

@@ -173,7 +173,7 @@ void HT16K33_set_point(uint8_t digit, bool is_set) {
 /**
  * @brief Convert a 16-bit value (0-9999) to BCD notation.
  *
- * @param value: The value to convert.
+ * @param base: The value to convert.
  *
  * @returns The BCD form of the value.
  */

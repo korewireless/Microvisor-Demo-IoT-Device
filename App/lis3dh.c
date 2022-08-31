@@ -112,12 +112,12 @@ void LIS3DH_get_accel(AccelResult* result) {
 }
 
 /**
- *  @brief  Det the current full-scale range of the accelerometer.
+ *  @brief  Det the current full-scale range (Gs) of the accelerometer.
  *
  *  @returns The current range.
  */
 uint8_t LIS3DH_get_range() {
-    uint32_t range_bits = (_get_reg(LIS3DH_CTRL_REG4) & 0x30) >> 4;
+    uint8_t range_bits = (_get_reg(LIS3DH_CTRL_REG4) & 0x30) >> 4;
     if (range_bits == 0x00) {
         _local_range = 2;
     } else if (range_bits == 0x01) {
@@ -249,6 +249,79 @@ void LIS3DH_configure_Fifo(bool state, uint8_t fifomode) {
         // Set mode to bypass
         _set_reg(LIS3DH_FIFO_CTRL_REG, val);
     }
+}
+
+/**
+ * @brief Configure the LIS3DH to assert the INT pin on clicks.
+ *
+ * @param enable:     Enable click interrupts (`true`) or disable them (`false`).
+ * @param click_type: The type of click to monitor — see lis3dh.h.
+ * @param threshold:  Inertial interrupts threshold in float Gs.
+ * @param time_limit: Period to check for clicks in integer milliseconds.
+ * @param latency:    Laterncy period in integer milliseconds.
+ * @param window:     Measurement window in integer milliseconds.
+ */
+void LIS3DH_configure_click_irq(bool enable, uint8_t click_type, float threshold, uint8_t time_limit, uint8_t latency, uint8_t window) {
+
+    // Set the enable / disable flag
+    _set_reg_bit(LIS3DH_CTRL_REG3, 7, enable ? 1 : 0);
+
+    // If the click interrupt is nwo disabled, set LIS3DH_CLICK_CFG register and return
+    if (!enable) {
+        _set_reg(LIS3DH_CLICK_CFG, 0x00);
+        return;
+    }
+
+    // Set the LIS3DH_CLICK_CFG register
+    _set_reg(LIS3DH_CLICK_CFG, click_type);
+
+    // Set the LIS3DH_CLICK_THS register
+    uint8_t latched_bit = _get_reg(LIS3DH_CLICK_THS) & 0x80;    // Get LIR_Click bit
+    if (threshold < 0) threshold *= -1.0;                       // Make sure we have a positive value
+    if (threshold > _local_range) threshold = (float)_local_range;     // Make sure it doesn't exceed the _range
+
+    uint32_t ithreshold = (uint32_t)((threshold / (float)_local_range) * 127);
+    _set_reg(LIS3DH_CLICK_THS, latched_bit | (ithreshold & 0x7F));
+
+    // Set the LIS3DH_TIME_LIMIT register (max time for a click)
+    _set_reg(LIS3DH_TIME_LIMIT, time_limit);
+    // Set the LIS3DH_TIME_LATENCY register (min time between clicks for double click)
+    _set_reg(LIS3DH_TIME_LATENCY, latency);
+    // Set the LIS3DH_TIME_WINDOW register (max time for double click)
+    _set_reg(LIS3DH_TIME_WINDOW, window);
+}
+
+/**
+ * @brief Latch the LIS3dH's interrupts.
+ *        This locks interrupt values until read by calling `LIS3DH_get_interrupt_table()`.
+ *
+ * @param enable: Latch (`true`) or unlatch (`false`) the interrupts.
+ */
+void LIS3DH_configure_irq_latching(bool enable) {
+    _set_reg_bit(LIS3DH_CTRL_REG5, 3, enable ? 1 : 0);
+    _set_reg_bit(LIS3DH_CLICK_THS, 7, enable ? 1 : 0);
+}
+
+/**
+ * @brief Get the LIS3dH's interrupt table.
+ *
+ * @param data: Pointer to an InterruptTable structure.
+ *              (see lis3dh.h)
+ */
+void LIS3DH_get_interrupt_table(InterruptTable* data) {
+    uint8_t int_1 = _get_reg(LIS3DH_INT1_SRC);
+    uint8_t click = _get_reg(LIS3DH_CLICK_SRC);
+    
+    data->int_1 = (int_1 & 0x40) != 0;
+    data->x_low = (int_1 & 0x01) != 0;
+    data->x_high = (int_1 & 0x02) != 0;
+    data->y_low = (int_1 & 0x04) != 0;
+    data->y_high = (int_1 & 0x08) != 0;
+    data->z_low = (int_1 & 0x10) != 0;
+    data->z_high = (int_1 & 0x20) != 0;
+    data->click = (click & 0x40) != 0;
+    data->single_click = (click & 0x10) != 0;
+    data->double_click = (click & 0x20) != 0;
 }
 
 /**

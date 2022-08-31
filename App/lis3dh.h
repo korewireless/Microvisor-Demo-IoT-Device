@@ -98,6 +98,20 @@ typedef struct {
     double  z;
 } AccelResult;
 
+// Record for interrupt table readings
+typedef struct {
+    bool    int_1;
+    bool    x_low;
+    bool    x_high;
+    bool    y_low;
+    bool    y_high;
+    bool    z_low;
+    bool    z_high;
+    bool    click;
+    bool    single_click;
+    bool    double_click;
+} InterruptTable;
+
 
 /*
  *  PROTOTYPES
@@ -113,6 +127,9 @@ uint32_t    LIS3DH_set_data_rate(uint32_t rate);
 void        LIS3DH_set_mode(uint8_t mode);
 void        LIS3DH_configure_high_pass_filter(uint8_t filters, uint8_t cutoff, uint8_t mode);
 void        LIS3DH_configure_Fifo(bool state, uint8_t fifomode);
+void        LIS3DH_configure_click_irq(bool enable, uint8_t click_type, float threshold, uint8_t time_limit, uint8_t latency, uint8_t window);
+void        LIS3DH_configure_irq_latching(bool enable);
+void        LIS3DH_get_interrupt_table(InterruptTable* data);
 void        LIS3DH_reset();
 uint8_t     LIS3DH_get_device_id();
 

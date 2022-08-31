@@ -13,8 +13,10 @@ extern      I2C_HandleTypeDef   i2c;
 extern      bool                use_i2c;
 
 
+/**
+ * @brief Configure STM32U585 I2C1.
+ */
 void I2C_init() {
-    // Configure I2C1
     // I2C1 pins are:
     //   SDA -> PB9
     //   SCL -> PB6
@@ -39,11 +41,17 @@ void I2C_init() {
 }
 
 
-bool I2C_check(uint8_t addr) {
+/**
+ * @brief Check there is a device at the specified address.
+ *        Board LED flashed 8 times on fail.
+ *
+ * @param address 7-bit I2C address.
+ */
+bool I2C_check(uint8_t address) {
     uint8_t timeout_count = 0;
 
     while(true) {
-        HAL_StatusTypeDef status = HAL_I2C_IsDeviceReady(&i2c, addr << 1, 1, 100);
+        HAL_StatusTypeDef status = HAL_I2C_IsDeviceReady(&i2c, address << 1, 1, 100);
         if (status == HAL_OK) {
             return true;
         } else {
@@ -67,6 +75,9 @@ bool I2C_check(uint8_t addr) {
 }
 
 
+/**
+ * @brief Scan the I2C bus and list any devices preseent.
+ */
 void I2C_Scan() {
     uint8_t data = 0;
     for (uint8_t i = 2 ; i < 256 ; i += 2) {
@@ -77,6 +88,11 @@ void I2C_Scan() {
 }
 
 
+/**
+ * @brief HAL-called function to configure I2C.
+ *
+ * @param i2c: A HAL I2C_HandleTypeDef pointer to the I2C instance.
+ */
 void HAL_I2C_MspInit(I2C_HandleTypeDef *i2c) {
     // This SDK-named function is called by HAL_I2C_Init()
 
@@ -101,7 +117,7 @@ void HAL_I2C_MspInit(I2C_HandleTypeDef *i2c) {
     gpioConfig.Pin       = GPIO_PIN_6 | GPIO_PIN_9;
     gpioConfig.Mode      = GPIO_MODE_AF_OD;
     gpioConfig.Pull      = GPIO_NOPULL;
-    gpioConfig.Speed     = GPIO_SPEED_FREQ_LOW;
+    gpioConfig.Speed     = GPIO_SPEED_FREQ_HIGH;
     gpioConfig.Alternate = GPIO_AF4_I2C1;
 
     // Initialize the pins with the setup data

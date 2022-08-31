@@ -344,6 +344,6 @@ void report_and_assert(uint16_t err_code) {
  * @brief Interrupt handler as specified in HAL doc.
  */
 void HAL_GPIO_EXTI_Callback() {
-    interrupt_triggered = true;
+    if (__HAL_GPIO_EXTI_GET_FLAG(LIS3DH_INT_GPIO_PIN)) interrupt_triggered = true;
 }
 

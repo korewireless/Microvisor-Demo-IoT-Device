@@ -45,6 +45,7 @@ volatile bool got_sensor_accl = false;
 volatile bool request_recv = false;
 volatile bool is_connected = false;
 volatile double temp = 0.0;
+volatile bool interrupt_triggered = false;
 
 /**
  * These variables are defined in `http.c`
@@ -141,9 +142,9 @@ void GPIO_init(void) {
 
     // Configure GPIO pin output Level
     HAL_GPIO_WritePin(LED_GPIO_BANK, LED_GPIO_PIN, GPIO_PIN_RESET);
-    HAL_GPIO_WritePin(BUTTON_GPIO_BANK, BUTTON_GPIO_PIN, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(LIS3DH_INT_GPIO_BANK, LIS3DH_INT_GPIO_PIN, GPIO_PIN_RESET);
 
-    // Configure GPIO pin : PA5 - Pin under test
+    // Configure GPIO pin : on-boardLED
     GPIO_InitTypeDef GPIO_InitStruct = { 0 };
     GPIO_InitStruct.Pin   = LED_GPIO_PIN;
     GPIO_InitStruct.Mode  = GPIO_MODE_OUTPUT_PP;
@@ -151,12 +152,16 @@ void GPIO_init(void) {
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
     HAL_GPIO_Init(LED_GPIO_BANK, &GPIO_InitStruct);
 
-    // Configure GPIO pin : PA5 - Pin under test
+    // Configure GPIO pin : LIS3DH interrupt
     GPIO_InitTypeDef GPIO_InitStruct2 = { 0 };
-    GPIO_InitStruct2.Pin   = BUTTON_GPIO_PIN;
-    GPIO_InitStruct2.Mode  = GPIO_MODE_INPUT;
-    GPIO_InitStruct2.Pull  = GPIO_PULLDOWN;
-    HAL_GPIO_Init(BUTTON_GPIO_BANK, &GPIO_InitStruct2);
+    GPIO_InitStruct2.Pin   = LIS3DH_INT_GPIO_PIN;
+    GPIO_InitStruct2.Mode  = GPIO_MODE_IT_FALLING;
+    GPIO_InitStruct2.Pull  = GPIO_NOPULL;
+    HAL_GPIO_Init(LIS3DH_INT_GPIO_BANK, &GPIO_InitStruct2);
+    
+    // Set up the NVIC to process interrupts
+    HAL_NVIC_SetPriority(LIS3DH_INT_IRQ, 3, 0);
+    HAL_NVIC_EnableIRQ(LIS3DH_INT_IRQ);
 }
 
 
@@ -222,9 +227,12 @@ void start_iot_task(void *argument) {
     got_sensor_accl = LIS3DH_init();
     if (got_sensor_temp) temp = MCP9808_read_temp();
     if (got_sensor_accl) {
-        LIS3DH_set_mode(LIS3DH_MODE_NORMAL);
-        LIS3DH_set_data_rate(25);
-        LIS3DH_enable(true);
+        server_log("LIS3DH present");
+        //LIS3DH_set_mode(LIS3DH_MODE_NORMAL);
+        LIS3DH_set_data_rate(100);
+        //LIS3DH_enable(true);
+        LIS3DH_configure_irq_latching(true);
+        LIS3DH_configure_click_irq(true, LIS3DH_DOUBLE_CLICK, 1.1, 5, 10, 50);
     }
 
     // Time trackers
@@ -232,7 +240,7 @@ void start_iot_task(void *argument) {
     uint32_t kill_time = 0;
     bool close_channel = false;
     
-    AccelResult accel;
+    //AccelResult accel;
 
     // Run the thread's main loop
     while (true) {
@@ -256,11 +264,12 @@ void start_iot_task(void *argument) {
                 } else {
                     server_error("Channel handle not zero");
                 }
-                
+                /*
                 if (got_sensor_accl) {
                     LIS3DH_get_accel(&accel);
                     server_log("Acceleration (G) X:%0.2f, Y:%0.2f, Z:%0.2f", accel.x, accel.y, accel.z);
                 }
+                 */
             }
         }
         
@@ -284,6 +293,21 @@ void start_iot_task(void *argument) {
             http_close_channel();
         }
 
+        //GPIO_PinState state = HAL_GPIO_ReadPin(LIS3DH_INT_GPIO_BANK, LIS3DH_INT_GPIO_PIN);
+        //if (state) server_log("INTERRUPT %i", state);
+        
+        if (interrupt_triggered) {
+            interrupt_triggered = false;
+            server_log("INTERRUPT!");
+        }
+        
+        InterruptTable iTable;
+        iTable.double_click = false;
+        LIS3DH_get_interrupt_table(&iTable);
+        if (iTable.double_click) {
+            server_log("DOUBLE CLICK!");
+        }
+        
         // End of cycle delay
         osDelay(10);
     }
@@ -315,3 +339,11 @@ void report_and_assert(uint16_t err_code) {
     vTaskSuspendAll();
     assert(false);
 }
+
+/**
+ * @brief Interrupt handler as specified in HAL doc.
+ */
+void HAL_GPIO_EXTI_Callback() {
+    interrupt_triggered = true;
+}
+

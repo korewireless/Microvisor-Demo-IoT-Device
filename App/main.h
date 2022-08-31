@@ -49,8 +49,9 @@ extern "C" {
 #define     LED_GPIO_PIN                GPIO_PIN_5
 #define     LED_FLASH_PERIOD_MS         1000
 
-#define     BUTTON_GPIO_BANK            GPIOF
-#define     BUTTON_GPIO_PIN             GPIO_PIN_6
+#define     LIS3DH_INT_GPIO_BANK        GPIOF
+#define     LIS3DH_INT_GPIO_PIN         GPIO_PIN_3
+#define     LIS3DH_INT_IRQ              EXTI3_IRQn
 
 #define     DEBUG_TASK_PAUSE_MS         1000
 #define     DEFAULT_TASK_PAUSE_MS       500

@@ -1,4 +1,4 @@
-# Twilio Microvisor IoT Device Demo 2.0.0
+# Twilio Microvisor IoT Device Demo 2.1.0
 
 This repo provides a basic demonstration of a sample IoT device application. It makes use of a temperature sensor and four-digit display to periodically read and present the local temperature. It transmits the data to a mock API.
 
@@ -58,6 +58,14 @@ You will also need the following hardware:
 Assemble the following circuit:
 
 ![The Microvisor IOT device demo circuit](./images/circuit2.png)
+
+| Wire Color | GPIO Block | GPIO Pin Number | Microvisor Pin | Role |
+| --- | --- | --- | --- | --- |
+| Black | CN12 | 72 | N/A | GND |
+| Blue | CN12 | 58 | PF3 | LIS3DH interrupt detection |
+| Green | CN12 | 5 | PB9 | I2C SDA |
+| Yellow | CN12 | 17 | PB6 | I2C SCL |
+| Red | CN11 | 5 | N/A | VDD (3V3) |
 
 The display and sensor are shown on breakout boards which include I2C pull-up resistors. If you add the display and sensor as raw components, you will need to add pull-ups on the I2C SDA and SCL lines. You only need a single pull-up on each line.
 

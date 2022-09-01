@@ -1,7 +1,7 @@
 /**
  *
  * Microvisor IoT Device Demo
- * Version 2.0.0
+ * Version 2.1.0
  * Copyright © 2022, Twilio
  * Licence: Apache 2.0
  *
@@ -28,11 +28,13 @@ bool LIS3DH_init() {
 
     if (did_value == 0x33) {
         LIS3DH_get_range();
+        server_log("LIS3DH Range: %i", _local_range);
         return true;
     }
 
     return false;
 }
+
 
 /**
  * @brief Enable the ADC. The ADC sampling frequency is the same as that of the ODR
@@ -46,6 +48,7 @@ void LIS3DH_enable_ADC(bool state) {
     _set_reg_bit(LIS3DH_TEMP_CFG_REG, 7, state ? 1 : 0);
     _set_reg_bit(LIS3DH_CTRL_REG4,    7, state ? 1 : 0);
 }
+
 
 /**
  * @brief This method returns the current value of the ADC line. You must pass one of
@@ -69,6 +72,7 @@ double LIS3DH_read_ADC(uint8_t adc_line) {
     return (val * 0.4) + 1.2;
 }
 
+
 /**
  * @brief Set the state of the accelerometer axes.
  *
@@ -80,7 +84,7 @@ double LIS3DH_read_ADC(uint8_t adc_line) {
  * @param state: Should the acclerometer be enabled (`true`) or
  *               disabled (`false`).
  */
-void LIS3DH_enable(bool state) {
+void LIS3DH_enable_accel(bool state) {
     uint8_t val = _get_reg(LIS3DH_CTRL_REG1);
     if (state) {
         val |= 0x07;
@@ -90,6 +94,7 @@ void LIS3DH_enable(bool state) {
 
     _set_reg(LIS3DH_CTRL_REG1, val);
 }
+
 
 /**
  * @brief Read data from the Accelerometer.
@@ -111,6 +116,7 @@ void LIS3DH_get_accel(AccelResult* result) {
     result->z = (result->z / 32000.0) * _local_range;
 }
 
+
 /**
  *  @brief  Det the current full-scale range (Gs) of the accelerometer.
  *
@@ -129,6 +135,7 @@ uint8_t LIS3DH_get_range() {
     }
     return _local_range;
 }
+
 
 /**
  *  @brief Set the full-scale range of the accelerometer.
@@ -157,6 +164,7 @@ uint8_t LIS3DH_set_range(uint8_t rangeA) {
     _set_reg(LIS3DH_CTRL_REG4, val | (range_bits << 4));
     return _local_range;
 }
+
 
 /**
  *  @brief Set accelerometer data rate in Hz.
@@ -211,6 +219,7 @@ uint32_t LIS3DH_set_data_rate(uint32_t rate) {
     return rate;
 }
 
+
 /**
  * @brief Set the mode of the accelerometer by passing a constant (LIS3DH_MODE_NORMAL,
  *        IS3DH_MODE_LOW_POWER, LIS3DH_MODE_HIGH_RESOLUTION).
@@ -223,11 +232,13 @@ void LIS3DH_set_mode(uint8_t mode) {
     _local_mode = mode;
 }
 
+
 void LIS3DH_configure_high_pass_filter(uint8_t filters, uint8_t cutoff, uint8_t mode) {
     // clear and set filters
     filters = LIS3DH_HPF_DISABLED | filters;
     _set_reg(LIS3DH_CTRL_REG2, filters | cutoff | mode);
 }
+
 
 /**
  * @brief Enable/disable and configure FIFO buffer.
@@ -251,6 +262,7 @@ void LIS3DH_configure_Fifo(bool state, uint8_t fifomode) {
     }
 }
 
+
 /**
  * @brief Configure the LIS3DH to assert the INT pin on clicks.
  *
@@ -265,8 +277,9 @@ void LIS3DH_configure_click_irq(bool enable, uint8_t click_type, float threshold
 
     // Set the enable / disable flag
     _set_reg_bit(LIS3DH_CTRL_REG3, 7, enable ? 1 : 0);
+    _set_reg_bit(LIS3DH_CTRL_REG3, 6, enable ? 1 : 0);
 
-    // If the click interrupt is nwo disabled, set LIS3DH_CLICK_CFG register and return
+    // If the click interrupt is not disabled, clear LIS3DH_CLICK_CFG register and return
     if (!enable) {
         _set_reg(LIS3DH_CLICK_CFG, 0x00);
         return;
@@ -291,6 +304,52 @@ void LIS3DH_configure_click_irq(bool enable, uint8_t click_type, float threshold
     _set_reg(LIS3DH_TIME_WINDOW, window);
 }
 
+
+/**
+ * @brief Configure the LIS3DH to assert the INT pin on falls.
+ *
+ * @param enable:     Latch (`true`) or unlatch (`false`) the interrupts.
+ * @param threshold:  Inertial interrupts threshold in float Gs.
+ * @param time_limit: Period to check for falls in integer milliseconds.
+ * @param latency:    Laterncy period in integer milliseconds.
+ * @param window:     Measurement window in integer milliseconds.
+ */
+void LIS3DH_configure_free_fall_irq(bool enable, float threshold, uint8_t duration) {
+    LIS3DH_configure_inertial_irq(enable, threshold, duration, LIS3DH_AOI | LIS3DH_X_LOW | LIS3DH_Y_LOW | LIS3DH_Z_LOW);
+}
+
+
+/**
+ * @brief Configure the LIS3DH to assert the INT pin on movement.
+ *
+ * @param enable:    Latch (`true`) or unlatch (`false`) the interrupts.
+ * @param threshold: Inertial interrupts threshold in float Gs.
+ * @param duration:  Period to check for motion in integer milliseconds.
+ * @param options:   Bitfield indicated when an interrupt will be triggered.
+ */
+void LIS3DH_configure_inertial_irq(bool enable, float threshold, uint8_t duration, uint8_t options) {
+    // Set the enable flag
+    _set_reg_bit(LIS3DH_CTRL_REG3, 6, enable ? 1 : 0);
+
+    // If we're disabling the interrupt, don't set anything else
+    if (!enable) return;
+
+    // Clamp the threshold
+    if (threshold < 0) threshold = threshold * -1.0;    // Make sure we have a positive value
+    if (threshold > _local_range) threshold = (float)_local_range;        // Make sure it doesn't exceed the _range
+
+    // Set the threshold
+    uint32_t ithreshold = (uint32_t)((threshold / (float)_local_range) * 127);
+    _set_reg(LIS3DH_INT1_THS, (ithreshold & 0x7F));
+
+    // Set the duration
+    _set_reg(LIS3DH_INT1_DURATION, duration & 0x7F);
+
+    // Set the options flags
+    _set_reg(LIS3DH_INT1_CFG, options);
+}
+
+
 /**
  * @brief Latch the LIS3dH's interrupts.
  *        This locks interrupt values until read by calling `LIS3DH_get_interrupt_table()`.
@@ -301,6 +360,7 @@ void LIS3DH_configure_irq_latching(bool enable) {
     _set_reg_bit(LIS3DH_CTRL_REG5, 3, enable ? 1 : 0);
     _set_reg_bit(LIS3DH_CLICK_THS, 7, enable ? 1 : 0);
 }
+
 
 /**
  * @brief Get the LIS3dH's interrupt table.
@@ -323,6 +383,7 @@ void LIS3DH_get_interrupt_table(InterruptTable* data) {
     data->single_click = (click & 0x10) != 0;
     data->double_click = (click & 0x20) != 0;
 }
+
 
 /**
  * @brief Set default values for registers.
@@ -349,6 +410,7 @@ void LIS3DH_reset() {
     LIS3DH_get_range();
 }
 
+
 /**
  * @brief Read and return the Device ID (0x33).
  */
@@ -367,12 +429,14 @@ void _set_reg(uint8_t reg, uint8_t val) {
 
 void _set_reg_bit(uint8_t reg, uint8_t bit, bool state) {
     uint8_t val = _get_reg(reg);
+    
     if (state) {
-        val &= ~(0x01 << bit);
-    } else {
         val |= (0x01 << bit);
+    } else {
+        val &= ~(0x01 << bit);
     }
-    return _set_reg(reg, val);
+    
+    _set_reg(reg, val);
 }
 
 uint8_t _get_reg(uint8_t reg) {

@@ -7,7 +7,7 @@
 #
 # @author    Tony Smith
 # @copyright 2022, Twilio
-# @version   1.6.0
+# @version   1.6.1
 # @license   MIT
 #
 
@@ -35,7 +35,7 @@ mvplg_patch_min="0"
 
 # FROM 1.6.0 -- Trap ctrl-c
 stty -echoctl
-trap 'echo Done' SIGINT
+trap 'echo End of Line' SIGINT
 
 # FUNCTIONS
 show_help() {

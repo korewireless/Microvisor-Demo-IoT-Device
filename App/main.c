@@ -1,7 +1,7 @@
 /**
  *
  * Microvisor IoT Device Demo
- * Version 2.0.0
+ * Version 2.1.0
  * Copyright © 2022, Twilio
  * Licence: Apache 2.0
  *
@@ -73,6 +73,7 @@ int main(void) {
 
     // FROM 1.1.0
     // Signal app start on LED
+    // (`use_i2c` set by `I2C_init()`)
     if (use_i2c) {
         // Set up the display if it's available
         HT16K33_init();
@@ -134,6 +135,8 @@ void system_clock_config(void) {
  * @brief Initialize the MCU GPIO
  *
  * Used to flash the Nucleo's USER LED, which is on GPIO Pin PA5.
+ * and as an interrupt source (GPIO Pin PF3) connected to the
+ * LIS3DH motion sensor.
  */
 void GPIO_init(void) {
     // Enable GPIO port clock
@@ -144,7 +147,7 @@ void GPIO_init(void) {
     HAL_GPIO_WritePin(LED_GPIO_BANK, LED_GPIO_PIN, GPIO_PIN_RESET);
     HAL_GPIO_WritePin(LIS3DH_INT_GPIO_BANK, LIS3DH_INT_GPIO_PIN, GPIO_PIN_RESET);
 
-    // Configure GPIO pin : on-boardLED
+    // Configure GPIO pin for the on-board LED
     GPIO_InitTypeDef GPIO_InitStruct = { 0 };
     GPIO_InitStruct.Pin   = LED_GPIO_PIN;
     GPIO_InitStruct.Mode  = GPIO_MODE_OUTPUT_PP;
@@ -152,10 +155,10 @@ void GPIO_init(void) {
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
     HAL_GPIO_Init(LED_GPIO_BANK, &GPIO_InitStruct);
 
-    // Configure GPIO pin : LIS3DH interrupt
+    // Configure GPIO pin for the LIS3DH interrupt
     GPIO_InitTypeDef GPIO_InitStruct2 = { 0 };
     GPIO_InitStruct2.Pin   = LIS3DH_INT_GPIO_PIN;
-    GPIO_InitStruct2.Mode  = GPIO_MODE_IT_FALLING;
+    GPIO_InitStruct2.Mode  = GPIO_MODE_IT_RISING;
     GPIO_InitStruct2.Pull  = GPIO_NOPULL;
     HAL_GPIO_Init(LIS3DH_INT_GPIO_BANK, &GPIO_InitStruct2);
     
@@ -222,17 +225,25 @@ void start_iot_task(void *argument) {
     // Set up channel notifications
     http_channel_center_setup();
 
-    // Prep the sensor (if present)
+    // Prep the MCP9808 temperature sensor (if present)
     got_sensor_temp = MCP9808_init();
-    got_sensor_accl = LIS3DH_init();
     if (got_sensor_temp) temp = MCP9808_read_temp();
+    
+    // Prep the LIS3DH motion sensor (if present)
+    got_sensor_accl = LIS3DH_init();
     if (got_sensor_accl) {
-        server_log("LIS3DH present");
-        //LIS3DH_set_mode(LIS3DH_MODE_NORMAL);
+        // This is not necessary for power-cycled devices,
+        // but handy when updating code w/o power-cycling
+        // the sensor
+        LIS3DH_reset();
+        
+        // Configure the LIS3DH
+        LIS3DH_set_mode(LIS3DH_MODE_NORMAL);
         LIS3DH_set_data_rate(100);
-        //LIS3DH_enable(true);
         LIS3DH_configure_irq_latching(true);
-        LIS3DH_configure_click_irq(true, LIS3DH_DOUBLE_CLICK, 1.1, 5, 10, 50);
+        //LIS3DH_configure_click_irq(true, LIS3DH_DOUBLE_CLICK, 1.1, 5, 10, 50);
+        LIS3DH_configure_free_fall_irq(true, 0.5, 5);
+        //LIS3DH_configure_intertial_irq(true, 0.05, 50, LIS3DH_X_HIGH | LIS3DH_Y_HIGH | LIS3DH_Z_HIGH);
     }
 
     // Time trackers
@@ -240,8 +251,6 @@ void start_iot_task(void *argument) {
     uint32_t kill_time = 0;
     bool close_channel = false;
     
-    //AccelResult accel;
-
     // Run the thread's main loop
     while (true) {
         uint32_t tick = HAL_GetTick();
@@ -258,18 +267,12 @@ void start_iot_task(void *argument) {
 
                 // No channel open? Try and send the temperature
                 if (http_handles.channel == 0 && http_open_channel()) {
-                    bool result = http_send_request(temp);
+                    bool result = false; //http_send_request(temp);
                     if (!result) close_channel = true;
                     kill_time = tick;
                 } else {
                     server_error("Channel handle not zero");
                 }
-                /*
-                if (got_sensor_accl) {
-                    LIS3DH_get_accel(&accel);
-                    server_log("Acceleration (G) X:%0.2f, Y:%0.2f, Z:%0.2f", accel.x, accel.y, accel.z);
-                }
-                 */
             }
         }
         
@@ -293,19 +296,18 @@ void start_iot_task(void *argument) {
             http_close_channel();
         }
 
-        //GPIO_PinState state = HAL_GPIO_ReadPin(LIS3DH_INT_GPIO_BANK, LIS3DH_INT_GPIO_PIN);
-        //if (state) server_log("INTERRUPT %i", state);
-        
+        // Was an interrupt triggered? If so, log the fact
         if (interrupt_triggered) {
             interrupt_triggered = false;
-            server_log("INTERRUPT!");
-        }
-        
-        InterruptTable iTable;
-        iTable.double_click = false;
-        LIS3DH_get_interrupt_table(&iTable);
-        if (iTable.double_click) {
-            server_log("DOUBLE CLICK!");
+            server_log("Interrupt signal on GPIO PF3");
+            
+            InterruptTable table;
+            LIS3DH_get_interrupt_table(&table);
+            if (table.int_1) server_log("Free Fall detected");
+            
+            AccelResult accel;
+            LIS3DH_get_accel(&accel);
+            server_log("Acceleration X:%0.2fG, Y:%0.2fG, Z:%0.2fG", accel.x, accel.y, accel.z);
         }
         
         // End of cycle delay
@@ -340,10 +342,26 @@ void report_and_assert(uint16_t err_code) {
     assert(false);
 }
 
+
 /**
  * @brief Interrupt handler as specified in HAL doc.
  */
-void HAL_GPIO_EXTI_Callback() {
-    if (__HAL_GPIO_EXTI_GET_FLAG(LIS3DH_INT_GPIO_PIN)) interrupt_triggered = true;
+void HAL_GPIO_EXTI_Falling_Callback(uint16_t GPIO_Pin) {
+    interrupt_triggered = true;
 }
 
+
+/**
+ * @brief Interrupt handler as specified in HAL doc.
+ */
+void HAL_GPIO_EXTI_Rising_Callback(uint16_t GPIO_Pin) {
+    interrupt_triggered = true;
+}
+
+
+/**
+ * @brief Interrupt handler as specified in HAL doc.
+ */
+void EXTI3_IRQHandler(void) {
+    HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_3);
+}

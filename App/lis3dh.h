@@ -1,7 +1,7 @@
 /**
  *
  * Microvisor IoT Device Demo
- * Version 2.0.0
+ * Version 2.1.0
  * Copyright © 2022, Twilio
  * Licence: Apache 2.0
  *
@@ -117,7 +117,7 @@ typedef struct {
  *  PROTOTYPES
  */
 bool        LIS3DH_init();
-void        LIS3DH_enable(bool state);
+void        LIS3DH_enable_accel(bool state);
 void        LIS3DH_enable_ADC(bool state);
 double      LIS3DH_read_ADC(uint8_t adc_line);
 void        LIS3DH_get_accel(AccelResult* result);
@@ -130,6 +130,9 @@ void        LIS3DH_configure_Fifo(bool state, uint8_t fifomode);
 void        LIS3DH_configure_click_irq(bool enable, uint8_t click_type, float threshold, uint8_t time_limit, uint8_t latency, uint8_t window);
 void        LIS3DH_configure_irq_latching(bool enable);
 void        LIS3DH_get_interrupt_table(InterruptTable* data);
+void        LIS3DH_configure_inertial_irq(bool enable, float threshold, uint8_t duration, uint8_t options);
+void        LIS3DH_configure_free_fall_irq(bool enable, float threshold, uint8_t duration);
+
 void        LIS3DH_reset();
 uint8_t     LIS3DH_get_device_id();
 

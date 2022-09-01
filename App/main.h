@@ -1,7 +1,7 @@
 /**
  *
  * Microvisor IoT Device Demo
- * Version 2.0.0
+ * Version 2.1.0
  * Copyright © 2022, Twilio
  * Licence: Apache 2.0
  *
@@ -77,7 +77,6 @@ extern "C" {
 #define     ERR_NETWORK_HANDLE_NOT_ZERO                 52
 #define     ERR_NETWORK_NC_NOT_OPEN                     53
 #define     ERR_TEST                                    99
-
 
 
 /*

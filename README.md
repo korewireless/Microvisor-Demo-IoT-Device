@@ -10,6 +10,8 @@ The application code files can be found in the [`App/`](App/) directory. The [`S
 
 ## Release Notes
 
+Version 2.1.0 adds support for an [STMicro LIS3DH accelerometer](https://www.adafruit.com/product/2809) for motion detection.
+
 Version 2.0.0 replaces earlier `printf()`-based application logging with Microvisor’s application logging system calls.
 
 Versions prior to 1.2.0 include a version of the `deploy.sh` script which is no longer compatible with the Microvisor REST API.
@@ -49,13 +51,13 @@ You will also need the following hardware:
 
 * A Twilio Microvisor Nucleo Development Board. These are currently only available to Private Beta program participants. You will need to solder male header pins to the two GPIO banks on the board, or at the very least to the connected pins shown in the circuit diagram below.
 * An HT16K33-based 4-digit, 7-segment display, e.g., [Adafruit 0.56" 4-Digit 7-Segment Display w/I2C Backpack](https://www.adafruit.com/product/879).
-* An MCP9808 temperature sensor, e.g., [Adafruit MCP9808 High Accuracy I2C Temperature Sensor Breakout Board](https://www.adafruit.com/product/1782).
-
+* An MCP9808 temperature sensor, e.g., [Adafruit MCP9808 High Accuracy I2C Temperature Sensor Breakout Board](https://www.adafruit.com/product/5027).
+* An STMicro LIS3DH motion sensor, e.g., [Adafruit LIS3DH Triple-Axis Accelerometer](https://www.adafruit.com/product/2809).
 ## Hardware Setup
 
 Assemble the following circuit:
 
-![The Microvisor IOT device demo circuit](./images/circuit.png)
+![The Microvisor IOT device demo circuit](./images/circuit2.png)
 
 The display and sensor are shown on breakout boards which include I2C pull-up resistors. If you add the display and sensor as raw components, you will need to add pull-ups on the I2C SDA and SCL lines. You only need a single pull-up on each line.
 

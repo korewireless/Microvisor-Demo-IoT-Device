@@ -73,7 +73,7 @@ The Adafruit LIS3DH has an I2C address of `0x18`, the same as the MCP98008. To a
 
 #### Datasheets
 
-* [MCP9808](http://www.adafruit.com/datasheets/MCP9808.pdf))
+* [MCP9808](http://www.adafruit.com/datasheets/MCP9808.pdf)
 * [LIS3DH datasheet](https://www.st.com/resource/en/datasheet/lis3dh.pdf)
 * [LIS3DH app note](http://www.adafruit.com/datasheets/LIS3DHappnote.pdf)
 

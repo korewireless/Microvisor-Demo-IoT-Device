@@ -169,6 +169,12 @@ This will compile, bundle and upload the code, and stage it for deployment to yo
 
 The `--log` flag initiates log-streaming.
 
+You’ll see these outputs:
+
+![Data sent to Beeceptor](./images/beeceptor.png)
+
+The `temp` messages are sent periodically, `warning` messagaes only if you double-tap the LIS3DH.
+
 ## View Log Output
 
 You can start log streaming separately — for example, in a second terminal window — with this command:

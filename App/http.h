@@ -17,6 +17,7 @@ void        http_channel_center_setup(void);
 bool        http_open_channel(void);
 void        http_close_channel(void);
 bool        http_send_request(double temp);
+bool        http_send_warning();
 void        http_process_response(void);
 
 

@@ -240,10 +240,8 @@ void start_iot_task(void *argument) {
         // Configure the LIS3DH
         LIS3DH_set_mode(LIS3DH_MODE_NORMAL);
         LIS3DH_set_data_rate(100);
+        LIS3DH_configure_click_irq(true, LIS3DH_DOUBLE_CLICK, 1.1, 5, 10, 50);
         LIS3DH_configure_irq_latching(true);
-        //LIS3DH_configure_click_irq(true, LIS3DH_DOUBLE_CLICK, 1.1, 5, 10, 50);
-        LIS3DH_configure_free_fall_irq(true, 0.5, 5);
-        //LIS3DH_configure_intertial_irq(true, 0.05, 50, LIS3DH_X_HIGH | LIS3DH_Y_HIGH | LIS3DH_Z_HIGH);
     }
 
     // Time trackers
@@ -267,7 +265,7 @@ void start_iot_task(void *argument) {
 
                 // No channel open? Try and send the temperature
                 if (http_handles.channel == 0 && http_open_channel()) {
-                    bool result = false; //http_send_request(temp);
+                    bool result = http_send_request(temp);
                     if (!result) close_channel = true;
                     kill_time = tick;
                 } else {
@@ -303,7 +301,11 @@ void start_iot_task(void *argument) {
             
             InterruptTable table;
             LIS3DH_get_interrupt_table(&table);
-            if (table.int_1) server_log("Free Fall detected");
+            if (table.single_click) server_log("Device tapped once");
+            if (table.double_click) {
+                server_log("Device tapped twice");
+                http_send_warning();
+            }
             
             AccelResult accel;
             LIS3DH_get_accel(&accel);

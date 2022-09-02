@@ -84,14 +84,13 @@ double LIS3DH_read_ADC(uint8_t adc_line) {
  * @param state: Should the acclerometer be enabled (`true`) or
  *               disabled (`false`).
  */
-void LIS3DH_enable_accel(bool state) {
+void LIS3DH_enable_accel(bool enable) {
     uint8_t val = _get_reg(LIS3DH_CTRL_REG1);
-    if (state) {
+    if (enable) {
         val |= 0x07;
     } else {
         val &= 0xF8;
     }
-
     _set_reg(LIS3DH_CTRL_REG1, val);
 }
 
@@ -245,17 +244,17 @@ void LIS3DH_configure_high_pass_filter(uint8_t filters, uint8_t cutoff, uint8_t 
  *
  * @param state: Enable the FIFO (`true`) or disable it (`false`).
  */
-void LIS3DH_configure_Fifo(bool state, uint8_t fifomode) {
+void LIS3DH_configure_fifo(bool enable, uint8_t fifo_mode) {
     // Enable/disable the FIFO
-    _set_reg_bit(LIS3DH_CTRL_REG5, 6, state ? 1 : 0);
+    _set_reg_bit(LIS3DH_CTRL_REG5, 6, enable ? 1 : 0);
 
-    // NOTE FIFO Trigger selection (LIS3DH_FIFO_CTRL_REG bit 5) defaults to int1
-    //      this library currently doesn't change this bit, so trigger selection is
-    //      always set to trigger on int1
+    // NOTE FIFO Trigger selection (LIS3DH_FIFO_CTRL_REG bit 5) defaults to int1.
+    //      This library currently doesn't change this bit, so trigger selection
+    //      is always set to trigger on int1
     uint8_t val = _get_reg(LIS3DH_FIFO_CTRL_REG) & 0x3F;
 
-    if (state) {
-        _set_reg(LIS3DH_FIFO_CTRL_REG, (val | fifomode));
+    if (enable) {
+        _set_reg(LIS3DH_FIFO_CTRL_REG, (val | fifo_mode));
     } else {
         // Set mode to bypass
         _set_reg(LIS3DH_FIFO_CTRL_REG, val);
@@ -371,7 +370,6 @@ void LIS3DH_configure_irq_latching(bool enable) {
 void LIS3DH_get_interrupt_table(InterruptTable* data) {
     uint8_t int_1 = _get_reg(LIS3DH_INT1_SRC);
     uint8_t click = _get_reg(LIS3DH_CLICK_SRC);
-    
     data->int_1 = (int_1 & 0x40) != 0;
     data->x_low = (int_1 & 0x01) != 0;
     data->x_high = (int_1 & 0x02) != 0;
@@ -382,6 +380,21 @@ void LIS3DH_get_interrupt_table(InterruptTable* data) {
     data->click = (click & 0x40) != 0;
     data->single_click = (click & 0x10) != 0;
     data->double_click = (click & 0x20) != 0;
+}
+
+
+/**
+ * @brief Get the LIS3dH's FIFO status.
+ *
+ * @param data: Pointer to a FifoState structure.
+ *              (see lis3dh.h)
+ */
+void LIS3DH_get_fifo_stats(FifoState* data) {
+    uint8_t stats = _get_reg(LIS3DH_FIFO_SRC_REG);
+    data->watermark = (stats & 0x80) != 0;
+    data->overrun = (stats & 0x40) != 0;
+    data->empty = (stats & 0x20) != 0;
+    data->unread = (stats & 0x1F) + ((stats & 0x40) ? 1 : 0);
 }
 
 
@@ -417,6 +430,7 @@ void LIS3DH_reset() {
 uint8_t LIS3DH_get_device_id() {
     return _get_reg(LIS3DH_WHO_AM_I);
 }
+
 
 /********************** PRIVATE METHODS *********************/
 

@@ -120,7 +120,54 @@ void http_channel_center_setup(void) {
     server_log("Notification center handle: %lu", (uint32_t)http_handles.notification);
 }
 
+bool http_send_warning() {
+    // Check for a valid channel handle
+    if (http_handles.channel != 0) {
+        server_log("Sending HTTP request");
 
+        const char base[] = "{\"warning\":\"double tap detected\"}";
+
+        // Set up the request
+        const char verb[] = "POST";
+        const char uri[] = API_URL;
+
+        // Add a header
+        const char header_text[] = "Content-Type: application/json";
+        struct MvHttpHeader header = {
+            .data = (uint8_t *)header_text,
+            .length = strlen(header_text)
+        };
+
+        struct MvHttpHeader headers[] = { header };
+        struct MvHttpRequest request_config = {
+            .method = (uint8_t *)verb,
+            .method_len = strlen(verb),
+            .url = (uint8_t *)uri,
+            .url_len = strlen(uri),
+            .num_headers = 1,
+            .headers = headers,
+            .body = (uint8_t *)base,
+            .body_len = strlen(base),
+            .timeout_ms = 10000
+        };
+
+        // Issue the request -- and check its status
+        enum MvStatus status = mvSendHttpRequest(http_handles.channel, &request_config);
+        if (status == MV_STATUS_OKAY) {
+            server_log("Request sent to Twilio");
+            return true;
+        }
+
+        // Report send failure
+        server_error("Could not issue request. Status: %i", status);
+        return false;
+    }
+
+    // There's no open channel, so open open one now and
+    // try to send again
+    http_open_channel();
+    return http_send_warning();
+}
 /**
  * @brief Send a stock HTTP request.
  *

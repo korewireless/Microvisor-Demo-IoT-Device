@@ -1,6 +1,6 @@
 # Twilio Microvisor IoT Device Demo 2.1.0
 
-This repo provides a basic demonstration of a sample IoT device application. It makes use of a temperature sensor and four-digit display to periodically read and present the local temperature. It transmits the data to a mock API.
+This repo provides a basic demonstration of a sample IoT device application. It makes use of a temperature sensor and four-digit display to periodically read and present the local temperature. It transmits the data to a mock API. A motion sensor detects double-taps, which trigger warning messages to the mock API.
 
 The application is based on the [FreeRTOS](https://freertos.org/) real-time operating system and which will run on the “non-secure” side of Microvisor. FreeRTOS is included as a submodule.
 
@@ -60,7 +60,7 @@ Assemble the following circuit:
 ![The Microvisor IOT device demo circuit](./images/circuit2.png)
 
 | Wire Color | GPIO Block | GPIO Pin Number | Microvisor Pin | Role |
-| --- | --- | --- | --- | --- |
+| --- | :-: | :-: | :-: | --- |
 | Black | CN12 | 72 | N/A | GND |
 | Blue | CN12 | 58 | PF3 | LIS3DH interrupt detection |
 | Green | CN12 | 5 | PB9 | I2C SDA |
@@ -68,6 +68,14 @@ Assemble the following circuit:
 | Red | CN11 | 5 | N/A | VDD (3V3) |
 
 The display and sensor are shown on breakout boards which include I2C pull-up resistors. If you add the display and sensor as raw components, you will need to add pull-ups on the I2C SDA and SCL lines. You only need a single pull-up on each line.
+
+The Adafruit LIS3DH has an I2C address of `0x18`, the same as the MCP98008. To avoid this clash, connect the `SDO` pin on the Adafruit LIS3DH board to 3V3. This changes the address to `0x19`, and this is used in the sample code.
+
+#### Datasheets
+
+* [MCP9808](http://www.adafruit.com/datasheets/MCP9808.pdf))
+* [LIS3DH datasheet](https://www.st.com/resource/en/datasheet/lis3dh.pdf)
+* [LIS3DH app note](http://www.adafruit.com/datasheets/LIS3DHappnote.pdf)
 
 ## Software Setup
 

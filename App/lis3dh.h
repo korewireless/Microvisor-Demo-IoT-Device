@@ -91,14 +91,16 @@
 #define LIS3DH_ADC2                         0x02
 #define LIS3DH_ADC3                         0x03
 
-// Record for accelerometer readings
+
+/*
+ * STRUCTURES
+ */
 typedef struct {
     double  x;
     double  y;
     double  z;
-} AccelResult;
+} AccelResult;      // Record for accelerometer readings
 
-// Record for interrupt table readings
 typedef struct {
     bool    int_1;
     bool    x_low;
@@ -110,7 +112,14 @@ typedef struct {
     bool    click;
     bool    single_click;
     bool    double_click;
-} InterruptTable;
+} InterruptTable;   // Record for interrupt table readings
+
+typedef struct {
+    bool    watermark;
+    bool    overrun;
+    bool    empty;
+    bool    unread;
+} FifoState;        // Record for FIFO state info
 
 
 /*
@@ -126,10 +135,11 @@ uint8_t     LIS3DH_set_range(uint8_t rangeA);
 uint32_t    LIS3DH_set_data_rate(uint32_t rate);
 void        LIS3DH_set_mode(uint8_t mode);
 void        LIS3DH_configure_high_pass_filter(uint8_t filters, uint8_t cutoff, uint8_t mode);
-void        LIS3DH_configure_Fifo(bool state, uint8_t fifomode);
+void        LIS3DH_configure_fifo(bool state, uint8_t fifomode);
 void        LIS3DH_configure_click_irq(bool enable, uint8_t click_type, float threshold, uint8_t time_limit, uint8_t latency, uint8_t window);
 void        LIS3DH_configure_irq_latching(bool enable);
 void        LIS3DH_get_interrupt_table(InterruptTable* data);
+void        LIS3DH_get_fifo_stats(FifoState* data);
 void        LIS3DH_configure_inertial_irq(bool enable, float threshold, uint8_t duration, uint8_t options);
 void        LIS3DH_configure_free_fall_irq(bool enable, float threshold, uint8_t duration);
 

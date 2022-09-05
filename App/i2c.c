@@ -21,7 +21,7 @@ void I2C_init() {
     //   SDA -> PB9
     //   SCL -> PB6
     i2c.Instance              = I2C1;
-    i2c.Init.Timing           = 0x00C01F67;  // FROM ST SAMPLE
+    i2c.Init.Timing           = 0x00C01F67;  // FROM ST SAMPLE // 0x00310309
     i2c.Init.AddressingMode   = I2C_ADDRESSINGMODE_7BIT;
     i2c.Init.DualAddressMode  = I2C_DUALADDRESS_DISABLE;
     i2c.Init.OwnAddress1      = 0x00;
@@ -111,7 +111,7 @@ void HAL_I2C_MspInit(I2C_HandleTypeDef *i2c) {
     __HAL_RCC_GPIOB_CLK_ENABLE();
 
     // Configure the GPIO pins for I2C
-    // Pin PB6 - SCK
+    // Pin PB6 - SCL
     // Pin PB9 - SDA
     GPIO_InitTypeDef gpioConfig = { 0 };
     gpioConfig.Pin       = GPIO_PIN_6 | GPIO_PIN_9;

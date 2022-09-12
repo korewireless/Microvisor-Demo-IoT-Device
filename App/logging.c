@@ -25,6 +25,10 @@ const uint32_t log_buffer_size = 4096;
 static uint8_t log_buffer[4096] __attribute__((aligned(512))) = {0} ;
 
 
+extern      UART_HandleTypeDef   uart;
+
+
+
 /**
  * @brief  Open a logging channel.
  *
@@ -168,6 +172,8 @@ void do_log(bool is_err, char* format_string, va_list args) {
     char buffer[1024] = {0};
     
     // Add a timestamp
+    // NO LONG REQUIRED WITH MV PLUGIN 0.3.3 :-(
+    /*
     char timestamp[64] = {0};
     uint64_t usec = 0;
     time_t sec = 0;
@@ -188,12 +194,13 @@ void do_log(bool is_err, char* format_string, va_list args) {
     // Write the timestamp to the message
     strcpy(buffer, timestamp);
     size_t len = strlen(timestamp);
+    */
     
     // Write the message type to the message
-    sprintf(&buffer[len], is_err ? " [ERROR] " : " [DEBUG] ");
+    sprintf(buffer, is_err ? "[ERROR] " : "[DEBUG] ");
     
     // Write the formatted text to the message
-    vsnprintf(&buffer[len + 9], 1016, format_string, args);
+    vsnprintf(&buffer[8], sizeof(buffer) - 9, format_string, args);
     
     // Output the message using the system call
     mvServerLog((const uint8_t*)buffer, (uint16_t)strlen(buffer));

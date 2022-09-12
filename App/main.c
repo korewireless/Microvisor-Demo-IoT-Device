@@ -18,7 +18,7 @@
 osThreadId_t LEDTask;
 const osThreadAttr_t led_task_attributes = {
     .name = "LEDTask",
-    .stack_size = 2048,
+    .stack_size = 2560,
     .priority = (osPriority_t) osPriorityNormal
 };
 
@@ -33,6 +33,7 @@ const osThreadAttr_t iot_task_attributes = {
 
 // I2C-related values
 I2C_HandleTypeDef i2c;
+
 
 /**
  *  Theses variables may be changed by interrupt handler code,
@@ -70,7 +71,7 @@ int main(void) {
     // Initialize the peripherals
     GPIO_init();
     I2C_init();
-
+    
     // FROM 1.1.0
     // Signal app start on LED
     // (`use_i2c` set by `I2C_init()`)
@@ -299,17 +300,19 @@ void start_iot_task(void *argument) {
             interrupt_triggered = false;
             server_log("Interrupt signal on GPIO PF3");
             
-            InterruptTable table;
-            LIS3DH_get_interrupt_table(&table);
-            if (table.single_click) server_log("Device tapped once");
-            if (table.double_click) {
-                server_log("Device tapped twice");
-                http_send_warning();
+            if (use_i2c) {
+                InterruptTable table;
+                LIS3DH_get_interrupt_table(&table);
+                if (table.single_click) server_log("Device tapped once");
+                if (table.double_click) {
+                    server_log("Device tapped twice");
+                    http_send_warning();
+                }
+                
+                AccelResult accel;
+                LIS3DH_get_accel(&accel);
+                server_log("Acceleration X:%0.2fG, Y:%0.2fG, Z:%0.2fG", accel.x, accel.y, accel.z);
             }
-            
-            AccelResult accel;
-            LIS3DH_get_accel(&accel);
-            server_log("Acceleration X:%0.2fG, Y:%0.2fG, Z:%0.2fG", accel.x, accel.y, accel.z);
         }
         
         // End of cycle delay

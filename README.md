@@ -1,4 +1,4 @@
-# Twilio Microvisor IoT Device Demo 2.1.1
+# Twilio Microvisor IoT Device Demo 2.1.2
 
 This repo provides a basic demonstration of a sample IoT device application. It makes use of a temperature sensor and four-digit display to periodically read and present the local temperature. It transmits the data to a mock API. A motion sensor detects double-taps, which trigger warning messages to the mock API.
 
@@ -88,15 +88,8 @@ This project is written in C. At this time, we only support Ubuntu 20.0.4. Users
 Under Ubuntu, run the following:
 
 ```bash
-sudo apt install gcc-arm-none-eabi binutils-arm-none-eabi git \
-                 python3 python3-pip build-essential protobuf-compiler \
-                 cmake libsecret-1-dev curl jq openssl
-```
-
-Now run:
-
-```bash
-pip3 install cryptography protobuf~=3.0
+sudo apt install gcc-arm-none-eabi binutils-arm-none-eabi \
+  git curl build-essential cmake libsecret-1-dev jq openssl
 ```
 
 ### Twilio CLI
@@ -116,8 +109,6 @@ sudo apt install -y twilio
 Close your terminal window or tab, and open a new one. Now run:
 
 ```bash
-nvm install --lts
-npm install twilio-cli -g
 twilio plugins:install @twilio/plugin-microvisor
 ```
 

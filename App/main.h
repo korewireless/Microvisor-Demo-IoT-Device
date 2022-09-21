@@ -1,7 +1,7 @@
 /**
  *
  * Microvisor IoT Device Demo
- * Version 2.1.1
+ * Version 2.1.2
  * Copyright © 2022, Twilio
  * Licence: Apache 2.0
  *

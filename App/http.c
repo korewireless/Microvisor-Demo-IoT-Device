@@ -1,7 +1,7 @@
 /**
  *
  * Microvisor IoT Device Demo
- * Version 2.1.2
+ * Version 2.1.3
  * Copyright © 2022, Twilio
  * Licence: Apache 2.0
  *
@@ -17,9 +17,10 @@ struct {
     MvChannelHandle      channel;
 } http_handles = { 0, 0, 0 };
 
-// Central store for notification records.
-// Holds one record at a time -- each record is 16 bytes.
-volatile struct MvNotification http_notification_center[16];
+// Central store for HTTP request management notification records.
+// Holds four records at a time -- each record is 16 bytes in size.
+volatile struct MvNotification http_notification_center[4];
+volatile struct MvNotification* notification_ptr = http_notification_center;
 
 // Defined in `main.c`
 extern volatile bool request_recv;

@@ -9,14 +9,24 @@
 #include "main.h"
 
 
-extern      I2C_HandleTypeDef    i2c;
+/*
+ * STATIC PROTOTYPES
+ */
+static uint32_t bcd(uint32_t base);
+static void     HT16K33_write_cmd(uint8_t cmd);
+
+
+/*
+ * GLOBALS
+ */
+extern          I2C_HandleTypeDef    i2c;
 
 // The hex character set
-char        CHARSET[19] = "\x3F\x06\x5B\x4F\x66\x6D\x7D\x07\x7F\x6F\x5F\x7C\x58\x5E\x7B\x71\x40\x63";
+const char      CHARSET[19] = "\x3F\x06\x5B\x4F\x66\x6D\x7D\x07\x7F\x6F\x5F\x7C\x58\x5E\x7B\x71\x40\x63";
 
 // Map display digits to bytes in the buffer
-uint8_t     POS[4] = {0, 2, 6, 8};
-uint8_t     display_buffer[17];
+const uint8_t   POS[4] = {0, 2, 6, 8};
+uint8_t         display_buffer[17];
 
 
 /*
@@ -39,7 +49,7 @@ void HT16K33_init() {
  *
  * @param cmd: The single-byte command.
  */
-void HT16K33_write_cmd(uint8_t cmd) {
+static void HT16K33_write_cmd(uint8_t cmd) {
     HAL_I2C_Master_Transmit(&i2c, HT16K33_I2C_ADDR << 1, &cmd, 1, 100);
 }
 
@@ -177,7 +187,7 @@ void HT16K33_set_point(uint8_t digit, bool is_set) {
  *
  * @returns The BCD form of the value.
  */
-uint32_t bcd(uint32_t base) {
+static uint32_t bcd(uint32_t base) {
     if (base > 9999) base = 9999;
     for (uint32_t i = 0 ; i < 16 ; ++i) {
         base = base << 1;

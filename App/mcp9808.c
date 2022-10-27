@@ -9,6 +9,9 @@
 #include "main.h"
 
 
+/*
+ * GLOBALS
+ */
 extern I2C_HandleTypeDef i2c;
 
 

@@ -9,10 +9,19 @@
 #include "main.h"
 
 
-/**
- *  GLOBALS
+/*
+ * STATIC PROTOTYPES
  */
+static void system_clock_config(void);
+static void GPIO_init(void);
+static void start_led_task(void *argument);
+static void start_iot_task(void *argument);
+static void log_device_info(void);
 
+
+/*
+ * GLOBALS
+ */
 // This is the FreeRTOS thread task that flashed the USER LED
 // and operates the display
 osThreadId_t LEDTask;
@@ -43,7 +52,7 @@ I2C_HandleTypeDef i2c;
 volatile bool use_i2c = false;
 volatile bool got_sensor_temp = false;
 volatile bool got_sensor_accl = false;
-volatile bool request_recv = false;
+volatile bool received_request = false;
 volatile bool is_connected = false;
 volatile double temp = 0.0;
 volatile bool interrupt_triggered = false;
@@ -126,7 +135,7 @@ uint32_t SECURE_SystemCoreClockUpdate() {
 /**
  * @brief System clock configuration.
  */
-void system_clock_config(void) {
+static void system_clock_config(void) {
     SystemCoreClockUpdate();
     HAL_InitTick(TICK_INT_PRIORITY);
 }
@@ -139,7 +148,7 @@ void system_clock_config(void) {
  * and as an interrupt source (GPIO Pin PF3) connected to the
  * LIS3DH motion sensor.
  */
-void GPIO_init(void) {
+static void GPIO_init(void) {
     // Enable GPIO port clock
     __HAL_RCC_GPIOA_CLK_ENABLE();
     __HAL_RCC_GPIOF_CLK_ENABLE();
@@ -174,7 +183,7 @@ void GPIO_init(void) {
  *
  * @param argument: Not used.
  */
-void start_led_task(void *argument) {
+static void start_led_task(void *argument) {
     uint32_t last_tick = 0;
 
     // The task's main loop
@@ -219,7 +228,7 @@ void start_led_task(void *argument) {
  *
  * @param argument: Not used.
  */
-void start_iot_task(void *argument) {
+static void start_iot_task(void *argument) {
     // Get the Device ID and build number
     log_device_info();
 
@@ -248,7 +257,7 @@ void start_iot_task(void *argument) {
     // Time trackers
     uint32_t read_tick = 0;
     uint32_t kill_time = 0;
-    bool close_channel = false;
+    bool do_close_channel = false;
     
     // Run the thread's main loop
     while (true) {
@@ -267,7 +276,7 @@ void start_iot_task(void *argument) {
                 // No channel open? Try and send the temperature
                 if (http_handles.channel == 0 && http_open_channel()) {
                     bool result = http_send_request(temp);
-                    if (!result) close_channel = true;
+                    if (!result) do_close_channel = true;
                     kill_time = tick;
                 } else {
                     server_error("Channel handle not zero");
@@ -276,21 +285,21 @@ void start_iot_task(void *argument) {
         }
         
         // Process a request's response if indicated by the ISR
-        if (request_recv) {
+        if (received_request) {
             http_process_response();
         }
 
         // Use 'kill_time' to force-close an open HTTP channel
         // if it's been left open too long
         if (kill_time > 0 && tick - kill_time > CHANNEL_KILL_PERIOD_MS) {
-            close_channel = true;
+            do_close_channel = true;
         }
 
         // Close the channel if asked to do so or
         // a request yielded a response
-        if (close_channel || request_recv) {
-            close_channel = false;
-            request_recv = false;
+        if (do_close_channel || received_request) {
+            do_close_channel = false;
+            received_request = false;
             kill_time = 0;
             http_close_channel();
         }
@@ -324,10 +333,10 @@ void start_iot_task(void *argument) {
 /**
  * @brief Show basic device info.
  */
-void log_device_info(void) {
+static void log_device_info(void) {
     uint8_t buffer[35] = { 0 };
     mvGetDeviceId(buffer, 34);
-    server_log("Device: %s\n   App: %s %s\n Build: %i", buffer, APP_NAME, APP_VERSION, BUILD_NUM);
+    server_log("\nDevice: %s\n   App: %s %s\n Build: %i", buffer, APP_NAME, APP_VERSION, BUILD_NUM);
 }
 
 

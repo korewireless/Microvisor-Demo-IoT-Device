@@ -21,5 +21,4 @@ bool        http_send_warning();
 void        http_process_response(void);
 
 
-
 #endif      // _HTTP_H_

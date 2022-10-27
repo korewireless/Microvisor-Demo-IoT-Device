@@ -60,6 +60,7 @@ extern "C" {
 #define     SENSOR_READ_PERIOD_MS       60000
 #define     CHANNEL_KILL_PERIOD_MS      15000
 
+#define     HTTP_NT_BUFFER_SIZE_R       8             // NOTE Size in records, not bytes
 
 /*
  * ERRORS
@@ -82,14 +83,7 @@ extern "C" {
 /*
  * PROTOTYPES
  */
-void        system_clock_config(void);
-void        GPIO_init(void);
-
-void        start_led_task(void *argument);
-void        start_iot_task(void *argument);
-
-void        log_device_info(void);
-void        report_and_assert(uint16_t err_code);
+void report_and_assert(uint16_t err_code);
 
 
 #ifdef __cplusplus

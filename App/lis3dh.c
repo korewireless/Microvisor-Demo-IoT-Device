@@ -9,6 +9,18 @@
 #include "main.h"
 
 
+/*
+ * STATIC PROTOTYPES
+ */
+static void     _set_reg(uint8_t reg, uint8_t val);
+static void     _set_reg_bit(uint8_t reg, uint8_t bit, bool state);
+static uint8_t  _get_reg(uint8_t reg);
+static void     _get_multi_reg(uint8_t reg, uint8_t* result, uint8_t num_bytes);
+
+
+/*
+ * GLOBALS
+ */
 extern I2C_HandleTypeDef i2c;
 
 // Data
@@ -434,14 +446,14 @@ uint8_t LIS3DH_get_device_id() {
 
 /********************** PRIVATE METHODS *********************/
 
-void _set_reg(uint8_t reg, uint8_t val) {
+static void _set_reg(uint8_t reg, uint8_t val) {
     uint8_t send_data[2] = {0};
     send_data[0] = reg;
     send_data[1] = val;
     HAL_I2C_Master_Transmit(&i2c, LIS3DH_ADDR << 1, send_data, 2, 100);
 }
 
-void _set_reg_bit(uint8_t reg, uint8_t bit, bool state) {
+static void _set_reg_bit(uint8_t reg, uint8_t bit, bool state) {
     uint8_t val = _get_reg(reg);
     
     if (state) {
@@ -453,14 +465,14 @@ void _set_reg_bit(uint8_t reg, uint8_t bit, bool state) {
     _set_reg(reg, val);
 }
 
-uint8_t _get_reg(uint8_t reg) {
+static uint8_t _get_reg(uint8_t reg) {
     uint8_t result = 0;
     HAL_I2C_Master_Transmit(&i2c, LIS3DH_ADDR << 1, &reg,    1, 100);
     HAL_I2C_Master_Receive(&i2c,  LIS3DH_ADDR << 1, &result, 1, 100);
     return result;
 }
 
-void _get_multi_reg(uint8_t reg, uint8_t* result, uint8_t num_bytes) {
+static void _get_multi_reg(uint8_t reg, uint8_t* result, uint8_t num_bytes) {
     HAL_I2C_Master_Transmit(&i2c, LIS3DH_ADDR << 1, &reg,   1,         100);
     HAL_I2C_Master_Receive(&i2c,  LIS3DH_ADDR << 1, result, num_bytes, 100);
 }

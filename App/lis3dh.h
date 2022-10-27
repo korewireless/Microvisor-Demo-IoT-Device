@@ -146,9 +146,5 @@ void        LIS3DH_configure_free_fall_irq(bool enable, float threshold, uint8_t
 void        LIS3DH_reset();
 uint8_t     LIS3DH_get_device_id();
 
-void        _set_reg(uint8_t reg, uint8_t val);
-void        _set_reg_bit(uint8_t reg, uint8_t bit, bool state);
-uint8_t     _get_reg(uint8_t reg);
-void        _get_multi_reg(uint8_t reg, uint8_t* result, uint8_t num_bytes);
 
 #endif      // _LIS3DH_HEADER_

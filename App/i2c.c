@@ -9,6 +9,15 @@
 #include "main.h"
 
 
+/*
+ * STATIC PROTOTYPES
+ */
+static bool I2C_check(uint8_t addr);
+
+
+/*
+ * GLOBALS
+ */
 extern      I2C_HandleTypeDef   i2c;
 extern      bool                use_i2c;
 
@@ -47,7 +56,7 @@ void I2C_init() {
  *
  * @param address 7-bit I2C address.
  */
-bool I2C_check(uint8_t address) {
+static bool I2C_check(uint8_t address) {
     uint8_t timeout_count = 0;
 
     while(true) {

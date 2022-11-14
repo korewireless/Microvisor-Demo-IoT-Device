@@ -53,13 +53,16 @@ bool MCP9808_init() {
  */
 double MCP9808_read_temp() {
     // Read sensor and return its value in degrees celsius.
-    uint8_t temp_data[2] = { 0 };
+    uint8_t temp_data[2] = { 0x06, 0x30 };
     uint8_t cmd = MCP9808_REG_AMBIENT_TEMP;
-    HAL_I2C_Master_Transmit(&i2c, MCP9808_ADDR << 1, &cmd,      1, 100);
-    HAL_I2C_Master_Receive(&i2c,  MCP9808_ADDR << 1, temp_data, 2, 100);
-
-    // Scale and convert to signed value.
+    HAL_I2C_Master_Transmit(&i2c, MCP9808_ADDR << 1, &cmd, 1, 200);
+    HAL_StatusTypeDef result = HAL_I2C_Master_Receive(&i2c, MCP9808_ADDR << 1, temp_data, 2, 500);
+    
+    // Check for a read error -- if there is one, return its code
     const uint32_t temp_raw = (temp_data[0] << 8) | temp_data[1];
+    if (temp_raw == 0x630) return (double)result;
+    
+    // Scale and convert to signed value.
     double temp_cel = (temp_raw & 0x0FFF) / 16.0;
     if (temp_raw & 0x1000) temp_cel -= 256.0;
     return temp_cel;

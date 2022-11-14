@@ -80,7 +80,7 @@ int main(void) {
     // Initialize the peripherals
     GPIO_init();
     I2C_init();
-    
+
     // FROM 1.1.0
     // Signal app start on LED
     // (`use_i2c` set by `I2C_init()`)
@@ -171,7 +171,7 @@ static void GPIO_init(void) {
     GPIO_InitStruct2.Mode  = GPIO_MODE_IT_RISING;
     GPIO_InitStruct2.Pull  = GPIO_NOPULL;
     HAL_GPIO_Init(LIS3DH_INT_GPIO_BANK, &GPIO_InitStruct2);
-    
+
     // Set up the NVIC to process interrupts
     HAL_NVIC_SetPriority(LIS3DH_INT_IRQ, 3, 0);
     HAL_NVIC_EnableIRQ(LIS3DH_INT_IRQ);
@@ -238,7 +238,7 @@ static void start_iot_task(void *argument) {
     // Prep the MCP9808 temperature sensor (if present)
     got_sensor_temp = MCP9808_init();
     if (got_sensor_temp) temp = MCP9808_read_temp();
-    
+
     // Prep the LIS3DH motion sensor (if present)
     got_sensor_accl = LIS3DH_init();
     if (got_sensor_accl) {
@@ -246,7 +246,7 @@ static void start_iot_task(void *argument) {
         // but handy when updating code w/o power-cycling
         // the sensor
         LIS3DH_reset();
-        
+
         // Configure the LIS3DH
         LIS3DH_set_mode(LIS3DH_MODE_NORMAL);
         LIS3DH_set_data_rate(100);
@@ -258,7 +258,7 @@ static void start_iot_task(void *argument) {
     uint32_t read_tick = 0;
     uint32_t kill_time = 0;
     bool do_close_channel = false;
-    
+
     // Run the thread's main loop
     while (true) {
         uint32_t tick = HAL_GetTick();
@@ -283,7 +283,7 @@ static void start_iot_task(void *argument) {
                 }
             }
         }
-        
+
         // Process a request's response if indicated by the ISR
         if (received_request) {
             http_process_response();
@@ -308,7 +308,7 @@ static void start_iot_task(void *argument) {
         if (interrupt_triggered) {
             interrupt_triggered = false;
             server_log("Interrupt signal on GPIO PF3");
-            
+
             if (use_i2c) {
                 InterruptTable table;
                 LIS3DH_get_interrupt_table(&table);
@@ -317,13 +317,13 @@ static void start_iot_task(void *argument) {
                     server_log("Device tapped twice");
                     http_send_warning();
                 }
-                
+
                 AccelResult accel;
                 LIS3DH_get_accel(&accel);
                 server_log("Acceleration X:%0.2fG, Y:%0.2fG, Z:%0.2fG", accel.x, accel.y, accel.z);
             }
         }
-        
+
         // End of cycle delay
         osDelay(10);
     }

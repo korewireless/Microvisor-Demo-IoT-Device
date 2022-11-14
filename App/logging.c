@@ -26,7 +26,7 @@ static void log_service_setup(void);
 struct {
     MvNotificationHandle notification;
     MvNetworkHandle      network;
-    MvNetworkHandle      log;
+    uint32_t             log;
 } net_handles = { 0, 0, 0 };
 
 // Central store for network management notification records.
@@ -127,12 +127,12 @@ static void net_notification_center_setup() {
  * @brief Initiate Microvisor application logging.
  */
 static void log_service_setup(void) {
-    if (net_handles.log == 0) {
-        // Initialse logging with the standard system call
+    if (net_handles.log != USER_HANDLE_LOGGING_STARTED) {
+        // Initialise logging with the standard system call
         enum MvStatus status = mvServerLoggingInit(log_buffer, log_buffer_size);
 
         // Set a mock handle as a proxy for a 'logging enabled' flag
-        if (status == MV_STATUS_OKAY) net_handles.log = (MvNetworkHandle)USER_HANDLE_LOGGING_STARTED;
+        if (status == MV_STATUS_OKAY) net_handles.log = USER_HANDLE_LOGGING_STARTED;
         assert(status == MV_STATUS_OKAY);
     }
 }
@@ -226,7 +226,7 @@ MvNetworkHandle get_net_handle(void) {
 /**
  *  @brief Provide the current logging handle.
  */
-MvNetworkHandle get_log_handle(void) {
+uint32_t get_log_handle(void) {
     return net_handles.log;
 }
 
@@ -235,6 +235,6 @@ MvNetworkHandle get_log_handle(void) {
  *  @brief Network notification ISR.
  */
 void TIM1_BRK_IRQHandler(void) {
-    // Netwokrk notifications interrupt service handler
+    // Network notifications interrupt service handler
     // Add your own notification processing code here
 }

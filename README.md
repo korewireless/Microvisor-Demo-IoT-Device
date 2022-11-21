@@ -10,13 +10,13 @@ The application code files can be found in the [`App/`](App/) directory. The [`S
 
 ## Release Notes
 
+Version 2.1.5 adds [Docker support](#docker).
+
 Version 2.1.4 makes no code changes but adds support for remote debugging via [Visual Studio Code](https://code.visualstudio.com/).
 
 Version 2.1.0 adds support for an [STMicro LIS3DH accelerometer](https://www.adafruit.com/product/2809) for motion detection.
 
 Version 2.0.0 replaces earlier `printf()`-based application logging with Microvisor’s application logging system calls.
-
-Versions prior to 1.2.0 include a version of the `deploy.sh` script which is no longer compatible with the Microvisor REST API.
 
 ## Cloning the Repo
 
@@ -55,6 +55,7 @@ You will also need the following hardware:
 * An HT16K33-based 4-digit, 7-segment display, e.g., [Adafruit 0.56" 4-Digit 7-Segment Display w/I2C Backpack](https://www.adafruit.com/product/879).
 * An MCP9808 temperature sensor, e.g., [Adafruit MCP9808 High Accuracy I2C Temperature Sensor Breakout Board](https://www.adafruit.com/product/5027).
 * An STMicro LIS3DH motion sensor, e.g., [Adafruit LIS3DH Triple-Axis Accelerometer](https://www.adafruit.com/product/2809).
+
 ## Hardware Setup
 
 Assemble the following circuit:
@@ -81,9 +82,35 @@ The Adafruit LIS3DH has an I2C address of `0x18`, the same as the MCP98008. To a
 
 ## Software Setup
 
-This project is written in C. At this time, we only support Ubuntu 20.0.4. Users of other operating systems should build the code under a virtual machine running Ubuntu.
+This project is written in C. At this time, we only support Ubuntu 20.0.4. Users of other operating systems should build the code under a virtual machine running Ubuntu, or with Docker.
 
-**Note** macOS users may attempt to install the pre-requisites below using [Homebrew](https://brew.sh). This is not supported, but should work. You may need to change the names of a few of the packages listed in the `apt install` command below.
+**Note** Users of unsupported platforms may attempt to install the Microvisor toolchain using [this guidance](https://www.twilio.com/docs/iot/microvisor/install-microvisor-app-development-tools-on-unsupported-platforms).
+
+### Docker
+
+If you are running on an architecture other than x86/amd64 (such as a Mac with Apple silicon), you will need to override the platform when running docker. This is needed for the Twilio CLI apt package which is x86 only at this time:
+
+```shell
+export DOCKER_DEFAULT_PLATFORM=linux/amd64
+```
+
+Build the image:
+
+```shell
+docker build --build-arg UID=$(id -u) --build-arg GID=$(id -g) -t mv-iot-demo-image .
+```
+
+Run the build:
+
+```
+docker run -it --rm -v $(pwd)/:/home/mvisor/project/ \
+  --env-file env.list \
+  --name mv-iot-demo mv-iot-demo-image
+```
+
+**Note** You will need to have exported certain environment variables, as [detailed below](#environment-variables).
+
+Under Docker, the demo is compiled, uploaded and deployed to your development board. It also initiates logging — hit <b>ctrl</b>-<b>c</b> to break out to the command prompt.
 
 ### Libraries and Tools
 
@@ -114,7 +141,20 @@ Close your terminal window or tab, and open a new one. Now run:
 twilio plugins:install @twilio/plugin-microvisor
 ```
 
-#### Environment Variables
+## Beeceptor Setup
+
+1. [Visit the Beeceptor website](https://beeceptor.com/).
+1. Enter an endpoint name and click **Create Endpoint**.
+1. Click **Mocking Rules**.
+1. Click **Create New Rule**.
+1. In the **Mocking Rules** panel:
+    1. Set the **Method** to `POST`.
+    1. Set the **Request condition** to `Request path starts with`.
+    1. Set the path to `/api/v1/data`.
+    1. Click **Save Rule**.
+1. Close the **Mocking Rules** by clicking the **X** in the top right corner of the panel.
+
+## Environment Variables
 
 Running the Twilio CLI and the project's [deploy script](./deploy.sh) — for uploading the built code to the Twilio cloud and subsequent deployment to your Microvisor Nucleo Board — uses the following Twilio credentials stored as environment variables. They should be added to your shell profile:
 
@@ -132,23 +172,11 @@ Enter the following command to get your target device’s SID and, if set, its u
 twilio api:microvisor:v1:devices:list
 ```
 
-## Beeceptor Setup
+Copy the Beeceptoir API URL, e.g., `https://<YOUR_ENDPOINT_NAME>.free.beeceptor.com` and set it as the following environment variable. Make sure you include the path from step 5.3, above:
 
-1. [Visit the Beeceptor website](https://beeceptor.com/).
-1. Enter an endpoint name and click **Create Endpoint**.
-1. Click **Mocking Rules**.
-1. Click **Create New Rule**.
-1. In the **Mocking Rules** panel:
-    1. Set the **Method** to `POST`.
-    1. Set the **Request condition** to `Request path starts with`.
-    1. Set the path to `/api/v1/data`.
-    1. Click **Save Rule**.
-1. Close the **Mocking Rules** by clicking the **X** in the top right corner of the panel.
-1. Copy the API URL, e.g., `https://<YOUR_ENDPOINT_NAME>.free.beeceptor.com` and set it as the following environment variable. Make sure you include the path from step 5.3, above:
-
-    ```bash
-    export MVIOT_URL=https://<YOUR_ENDPOINT_NAME>.free.beeceptor.com/api/v1/data
-    ```
+```bash
+export MVIOT_URL=https://<YOUR_ENDPOINT_NAME>.free.beeceptor.com/api/v1/data
+```
 
 ## Build and Deploy the Application
 

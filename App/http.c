@@ -129,7 +129,7 @@ bool http_send_warning() {
     if (http_handles.channel != 0) {
         server_log("Sending HTTP request");
 
-        const char base[] = "{\"warning\":\"double tap detected\"}";
+        const char base[] = "{\"warning\":\"movement detected\"}";
 
         // Set up the request
         const char verb[] = "POST";

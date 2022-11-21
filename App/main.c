@@ -250,7 +250,7 @@ static void start_iot_task(void *argument) {
         // Configure the LIS3DH
         LIS3DH_set_mode(LIS3DH_MODE_NORMAL);
         LIS3DH_set_data_rate(100);
-        LIS3DH_configure_click_irq(true, LIS3DH_DOUBLE_CLICK, 1.1, 5, 10, 50);
+        LIS3DH_configure_click_irq(true, LIS3DH_SINGLE_CLICK, 1.1, 5, 10, 50);
         LIS3DH_configure_irq_latching(true);
     }
 
@@ -312,9 +312,8 @@ static void start_iot_task(void *argument) {
             if (use_i2c) {
                 InterruptTable table;
                 LIS3DH_get_interrupt_table(&table);
-                if (table.single_click) server_log("Device tapped once");
-                if (table.double_click) {
-                    server_log("Device tapped twice");
+                if (table.single_click) {
+                    server_log("Device tapped once");
                     http_send_warning();
                 }
 

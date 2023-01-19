@@ -53,6 +53,7 @@ volatile bool use_i2c = false;
 volatile bool got_sensor_temp = false;
 volatile bool got_sensor_accl = false;
 volatile bool received_request = false;
+volatile bool channel_was_closed = false;
 volatile bool is_connected = false;
 volatile double temp = 0.0;
 volatile bool interrupt_triggered = false;
@@ -267,7 +268,7 @@ static void iot_task(void *argument) {
     enum MvStatus result = MV_STATUS_OKAY;
     
     // Set up channel notifications
-    http_channel_center_setup();
+    http_notification_center_setup();
 
     // Run the thread's main loop
     while (true) {
@@ -286,7 +287,6 @@ static void iot_task(void *argument) {
                 if (http_handles.channel == 0 && http_open_channel()) {
                     result = http_send_request(temp);
                     if (result > 0) do_close_channel = true;
-                    if (result == MV_STATUS_CHANNELCLOSED) http_handles.channel = 0;
                     kill_time = tick;
                 } else {
                     server_error("Channel handle not zero");
@@ -296,6 +296,14 @@ static void iot_task(void *argument) {
             // Process a request's response if indicated by the ISR
             if (received_request) {
                 http_process_response();
+            }
+            
+            // FROM 2.1.6
+            // Was the channel closed unexpectedly?
+            // `channel_was_closed` set in IRS
+            if (channel_was_closed) {
+                http_show_channel_closure();
+                channel_was_closed = false;
             }
             
             // Use 'kill_time' to force-close an open HTTP channel

@@ -1,8 +1,8 @@
 /**
  *
  * Microvisor IoT Device Demo
- * Version 2.1.5
- * Copyright © 2022, Twilio
+ * Version 2.1.6
+ * Copyright © 2023, Twilio
  * Licence: Apache 2.0
  *
  */
@@ -21,7 +21,8 @@ extern I2C_HandleTypeDef i2c;
  *  @returns `true` if we can read values and they are right,
  *           otherwise `false`.
  */
-bool MCP9808_init() {
+bool MCP9808_init(void) {
+    
     // Prep data storage buffers
     uint8_t mid_data[2] = {0};
     uint8_t did_data[2] = {0};
@@ -51,7 +52,8 @@ bool MCP9808_init() {
  *
  *  @returns `true` if the sensor is correct, otherwise `false`.
  */
-double MCP9808_read_temp() {
+double MCP9808_read_temp(void) {
+    
     // Read sensor and return its value in degrees celsius.
     uint8_t temp_data[2] = { 0x06, 0x30 };
     uint8_t cmd = MCP9808_REG_AMBIENT_TEMP;

@@ -1,13 +1,18 @@
 /**
  *
  * Microvisor IoT Device Demo
- * Version 2.1.5
- * Copyright © 2022, Twilio
+ * Version 2.1.6
+ * Copyright © 2023, Twilio
  * Licence: Apache 2.0
  *
  */
 #ifndef _MCP9808_HEADER_
 #define _MCP9808_HEADER_
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 
 /*
@@ -29,8 +34,13 @@
 /*
  *  PROTOTYPES
  */
-bool        MCP9808_init() ;
-double      MCP9808_read_temp();
+bool        MCP9808_init(void) ;
+double      MCP9808_read_temp(void);
+
+
+#ifdef __cplusplus
+}
+#endif
 
 
 #endif      // _MCP9808_HEADER_

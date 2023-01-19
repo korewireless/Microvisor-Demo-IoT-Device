@@ -1,8 +1,8 @@
 /**
  *
  * Microvisor IoT Device Demo
- * Version 2.1.5
- * Copyright © 2022, Twilio
+ * Version 2.1.6
+ * Copyright © 2023, Twilio
  * Licence: Apache 2.0
  *
  */
@@ -11,6 +11,12 @@
 
 
 // https://github.com/electricimp/LIS3DH/blob/master/LIS3DH.device.lib.nut
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 
 /*
  *  CONSTANTS
@@ -125,12 +131,12 @@ typedef struct {
 /*
  *  PROTOTYPES
  */
-bool        LIS3DH_init();
+bool        LIS3DH_init(void);
 void        LIS3DH_enable_accel(bool state);
 void        LIS3DH_enable_ADC(bool state);
 double      LIS3DH_read_ADC(uint8_t adc_line);
 void        LIS3DH_get_accel(AccelResult* result);
-uint8_t     LIS3DH_get_range();
+uint8_t     LIS3DH_get_range(void);
 uint8_t     LIS3DH_set_range(uint8_t rangeA);
 uint32_t    LIS3DH_set_data_rate(uint32_t rate);
 void        LIS3DH_set_mode(uint8_t mode);
@@ -143,8 +149,13 @@ void        LIS3DH_get_fifo_stats(FifoState* data);
 void        LIS3DH_configure_inertial_irq(bool enable, float threshold, uint8_t duration, uint8_t options);
 void        LIS3DH_configure_free_fall_irq(bool enable, float threshold, uint8_t duration);
 
-void        LIS3DH_reset();
-uint8_t     LIS3DH_get_device_id();
+void        LIS3DH_reset(void);
+uint8_t     LIS3DH_get_device_id(void);
+
+
+#ifdef __cplusplus
+}
+#endif
 
 
 #endif      // _LIS3DH_HEADER_

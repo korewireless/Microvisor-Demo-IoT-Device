@@ -1,4 +1,4 @@
-# Twilio Microvisor IoT Device Demo 2.1.5
+# Twilio Microvisor IoT Device Demo 2.1.6
 
 This repo provides a basic demonstration of a sample IoT device application. It makes use of a temperature sensor and four-digit display to periodically read and present the local temperature. It transmits the data to a mock API. A motion sensor detects double-taps, which trigger warning messages to the mock API.
 
@@ -10,6 +10,8 @@ The application code files can be found in the [`App/`](App/) directory. The [`S
 
 ## Release Notes
 
+Version 2.1.6 adds optional [logging over UART](#uart-logging).
+ 
 Version 2.1.5 adds [Docker support](#docker).
 
 Version 2.1.4 makes no code changes but adds support for remote debugging via [Visual Studio Code](https://code.visualstudio.com/).
@@ -51,7 +53,7 @@ The demo makes use of [Beeceptor](https://beeceptor.com/) as a target for the HT
 
 You will also need the following hardware:
 
-* A Twilio Microvisor Nucleo Development Board. These are currently only available to Private Beta program participants. You will need to solder male header pins to the two GPIO banks on the board, or at the very least to the connected pins shown in the circuit diagram below.
+* A Twilio Microvisor Nucleo Development Board. You will need to solder male header pins to the two GPIO banks on the board, or at the very least to the connected pins shown in the circuit diagram below.
 * An HT16K33-based 4-digit, 7-segment display, e.g., [Adafruit 0.56" 4-Digit 7-Segment Display w/I2C Backpack](https://www.adafruit.com/product/879).
 * An MCP9808 temperature sensor, e.g., [Adafruit MCP9808 High Accuracy I2C Temperature Sensor Breakout Board](https://www.adafruit.com/product/5027).
 * An STMicro LIS3DH motion sensor, e.g., [Adafruit LIS3DH Triple-Axis Accelerometer](https://www.adafruit.com/product/2809).
@@ -210,6 +212,10 @@ For more information, run
 ./deploy.sh --help
 ```
 
+## UART Logging
+
+You may log your application over UART on pin PD5 — pin 41 in bank CN11 on the Microvisor Nucleo Development Board. To use this mode, which is intended as an alternative to application logging, typically when a device is disconnected, connect a 3V3 FTDI USB-to-Serial adapter cable’s RX pin to PD5, and a GND pin to any Nucleo GND pin. Whether you do this or not, the application will continue to log via the Internet.
+
 ## Remote Debugging
 
 This release supports remote debugging, and builds are enabled for remote debugging automatically. Change the value of the line
@@ -220,7 +226,7 @@ set(ENABLE_REMOTE_DEBUGGING 1)
 
 in the root `CMakeLists.txt` file to `0` to disable this.
 
-Enabling remote debugging in the build does not initiate a GDB session — you will have to do this manually. Follow the instructions in the [Microvisor documentation](https://www.twilio.com/docs/iot/microvisor/microvisor-remote-debugging) **Private Beta participants only**
+Enabling remote debugging in the build does not initiate a GDB session — you will have to do this manually. Follow the instructions in the [Microvisor documentation](https://www.twilio.com/docs/iot/microvisor/microvisor-remote-debugging).
 
 This repo contains a `.gdbinit` file which sets the remote target to localhost on port 8001 to match the Twilio CLI Microvisor plugin remote debugging defaults.
 
@@ -236,7 +242,7 @@ Alternatively, generate the keys manually and pass their locations to the deploy
 
 ## Copyright and Licensing
 
-The sample code and Microvisor SDK is © 2022, Twilio, Inc. It is licensed under the terms of the [Apache 2.0 License](./LICENSE).
+The sample code and Microvisor SDK is © 2023, Twilio, Inc. It is licensed under the terms of the [Apache 2.0 License](./LICENSE).
 
 The SDK makes use of code © 2021, STMicroelectronics and affiliates. This code is licensed under terms described in [this file](https://github.com/twilio/twilio-microvisor-hal-stm32u5/blob/main/LICENSE-STM32CubeU5.md).
 

@@ -1,8 +1,8 @@
 /**
  *
  * Microvisor IoT Device Demo
- * Version 2.1.5
- * Copyright © 2022, Twilio
+ * Version 2.1.6
+ * Copyright © 2023, Twilio
  * Licence: Apache 2.0
  *
  */
@@ -13,7 +13,7 @@
  *  GLOBALS
  */
 // Central store for Microvisor resource handles used in this code.
-// See `https://www.twilio.com/docs/iot/microvisor/syscalls#http_handles`
+// See `https://www.twilio.com/docs/iot/microvisor/syscalls#handles`
 struct {
     MvNotificationHandle notification;
     MvNetworkHandle      network;
@@ -35,6 +35,7 @@ extern volatile bool received_request;
  *  @returns `true` if the channel is open, otherwise `false`.
  */
 bool http_open_channel(void) {
+    
     // Set up the HTTP channel's multi-use send and receive buffers
     static volatile uint8_t http_rx_buffer[1536] __attribute__((aligned(512)));
     static volatile uint8_t http_tx_buffer[512] __attribute__((aligned(512)));
@@ -70,10 +71,9 @@ bool http_open_channel(void) {
     if (status == MV_STATUS_OKAY) {
         server_log("HTTP channel handle: %lu", (uint32_t)http_handles.channel);
         return true;
-    } else {
-        server_error("HTTP channel opening failed. Status: %i", status);
     }
-
+    
+    server_error("HTTP channel opening failed. Status: %i", status);
     return false;
 }
 
@@ -82,12 +82,14 @@ bool http_open_channel(void) {
  *  @brief Close the currently open HTTP channel.
  */
 void http_close_channel(void) {
+    
     // If we have a valid channel handle -- ie. it is non-zero --
     // then ask Microvisor to close it and confirm acceptance of
     // the closure request.
     if (http_handles.channel != 0) {
+        MvChannelHandle old = http_handles.channel;
         enum MvStatus status = mvCloseChannel(&http_handles.channel);
-        server_log("HTTP channel closed");
+        server_log("HTTP channel %lu closed", (uint32_t)old);
         if (status != MV_STATUS_OKAY && status != MV_STATUS_CHANNELCLOSED) report_and_assert(ERR_CHANNEL_NOT_CLOSED);
     }
 
@@ -100,6 +102,7 @@ void http_close_channel(void) {
  * @brief Configure the channel Notification Center.
  */
 void http_channel_center_setup(void) {
+    
     // Clear the notification store
     memset((void *)http_notification_center, 0xFF, sizeof(http_notification_center));
 
@@ -121,10 +124,17 @@ void http_channel_center_setup(void) {
     // Start the notification IRQ
     NVIC_ClearPendingIRQ(TIM8_BRK_IRQn);
     NVIC_EnableIRQ(TIM8_BRK_IRQn);
-    server_log("Notification center handle: %lu", (uint32_t)http_handles.notification);
+    server_log("HTTP notification center handle: %lu", (uint32_t)http_handles.notification);
 }
 
-bool http_send_warning() {
+
+/**
+ * @brief Issue a warning message via HTTP.
+ *
+ * @returns The request's MvStatus.
+ */
+enum MvStatus http_send_warning(void) {
+    
     // Check for a valid channel handle
     if (http_handles.channel != 0) {
         server_log("Sending HTTP request");
@@ -159,12 +169,13 @@ bool http_send_warning() {
         enum MvStatus status = mvSendHttpRequest(http_handles.channel, &request_config);
         if (status == MV_STATUS_OKAY) {
             server_log("Request sent to Twilio");
-            return true;
+        } else if (status == MV_STATUS_CHANNELCLOSED) {
+            server_error("HTTP channel %lu closed unexpectedly", (uint32_t)http_handles.channel);
+        } else {
+            server_error("Could not issue request. Status: %i", status);
         }
-
-        // Report send failure
-        server_error("Could not issue request. Status: %i", status);
-        return false;
+        
+        return status;
     }
 
     // There's no open channel, so open open one now and
@@ -175,18 +186,16 @@ bool http_send_warning() {
 /**
  * @brief Send a stock HTTP request.
  *
- * @returns `true` if the request was accepted by Microvisor, otherwise `false`
+ * @returns The request's MvStatus.
  */
-bool http_send_request(double temp) {
+enum MvStatus http_send_request(double temp) {
+    
     // Check for a valid channel handle
     if (http_handles.channel != 0) {
         server_log("Sending HTTP request");
 
-        char* base = malloc(40 * sizeof(char));
-        sprintf(base, "{\"temp\":%.02f}", temp);
-        char body[strlen(base)];
-        strcpy(body, base);
-        free(base);
+        char body[48] = {0};
+        snprintf(body, 47, "{\"temp\":%.02f}", temp);
 
         // Set up the request
         const char verb[] = "POST";
@@ -216,12 +225,13 @@ bool http_send_request(double temp) {
         enum MvStatus status = mvSendHttpRequest(http_handles.channel, &request_config);
         if (status == MV_STATUS_OKAY) {
             server_log("Request sent to Twilio");
-            return true;
+        } else if (status == MV_STATUS_CHANNELCLOSED) {
+            server_error("HTTP channel %lu closed unexpectedly", (uint32_t)http_handles.channel);
+        } else {
+            server_error("Could not issue request. Status: %i", status);
         }
-
-        // Report send failure
-        server_error("Could not issue request. Status: %i", status);
-        return false;
+        
+        return status;
     }
 
     // There's no open channel, so open open one now and
@@ -235,6 +245,7 @@ bool http_send_request(double temp) {
  * @brief Process HTTP response data.
  */
 void http_process_response(void) {
+    
     // We have received data via the active HTTP channel so establish
     // an `MvHttpResponseData` record to hold response metadata
     struct MvHttpResponseData resp_data;
@@ -277,6 +288,7 @@ void http_process_response(void) {
  *  and extract HTTP response data when it is available.
  */
 void TIM8_BRK_IRQHandler(void) {
+    
     // Check for a suitable event: readable data in the channel
     volatile struct MvNotification notification = http_notification_center[current_notification_index];
     if (notification.event_type == MV_EVENTTYPE_CHANNELDATAREADABLE) {

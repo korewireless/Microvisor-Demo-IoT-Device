@@ -9,6 +9,11 @@ set(ENABLE_REMOTE_DEBUGGING 1)
 # Set to false to stop '[DEBUG]' messages being logged
 add_compile_definitions(LOG_DEBUG_MESSAGES=true)
 
+# Set to false to stop UART debugging for disconnected apps
+# This requires additional hardware: an FTDI USB-to-UART cable,
+# connected to GPIO pin PD5 (board TX, cable RX)
+add_compile_definitions(ENABLE_UART_DEBUGGING=true)
+
 set(CMAKE_TOOLCHAIN_FILE "${CMAKE_SOURCE_DIR}/twilio-microvisor-hal-stm32u5/toolchain.cmake")
 
 project(${PROJECT_NAME} C CXX ASM)

@@ -1,8 +1,8 @@
 /**
  *
  * Microvisor IoT Device Demo
- * Version 2.1.5
- * Copyright © 2022, Twilio
+ * Version 2.1.6
+ * Copyright © 2023, Twilio
  * Licence: Apache 2.0
  *
  */
@@ -34,7 +34,8 @@ uint8_t _local_range = 0;
     @returns `true` if we can read values and they are right,
              otherwise `false`.
  */
-bool LIS3DH_init() {
+bool LIS3DH_init(void) {
+    
     uint8_t did_value = LIS3DH_get_device_id();
     server_log("LIS3DH Device ID: 0x%04x", did_value);
 
@@ -57,6 +58,7 @@ bool LIS3DH_init() {
  *  @param state: ADC should be enabled (`true`) or disabled (`false`).
  */
 void LIS3DH_enable_ADC(bool state) {
+    
     _set_reg_bit(LIS3DH_TEMP_CFG_REG, 7, state ? 1 : 0);
     _set_reg_bit(LIS3DH_CTRL_REG4,    7, state ? 1 : 0);
 }
@@ -72,6 +74,7 @@ void LIS3DH_enable_ADC(bool state) {
  * @returns The ADC value.
  */
 double LIS3DH_read_ADC(uint8_t adc_line) {
+    
     uint8_t reg = (adc_line << 1) + 6;
     uint8_t read[2] = {0};
     _get_multi_reg(reg, read, 2);
@@ -97,6 +100,7 @@ double LIS3DH_read_ADC(uint8_t adc_line) {
  *               disabled (`false`).
  */
 void LIS3DH_enable_accel(bool enable) {
+    
     uint8_t val = _get_reg(LIS3DH_CTRL_REG1);
     if (enable) {
         val |= 0x07;
@@ -113,6 +117,7 @@ void LIS3DH_enable_accel(bool enable) {
  * @param result: A pointer to an AccelResult struct.
  */
 void LIS3DH_get_accel(AccelResult* result) {
+    
     uint8_t reading[6] = {0};
     _get_multi_reg(LIS3DH_OUT_X_L_INCR, reading, 6);
 
@@ -133,7 +138,8 @@ void LIS3DH_get_accel(AccelResult* result) {
  *
  *  @returns The current range.
  */
-uint8_t LIS3DH_get_range() {
+uint8_t LIS3DH_get_range(void) {
+    
     uint8_t range_bits = (_get_reg(LIS3DH_CTRL_REG4) & 0x30) >> 4;
     if (range_bits == 0x00) {
         _local_range = 2;
@@ -156,6 +162,7 @@ uint8_t LIS3DH_get_range() {
  *  @returns The current range.
  */
 uint8_t LIS3DH_set_range(uint8_t rangeA) {
+    
     uint8_t val = _get_reg(LIS3DH_CTRL_REG4) & 0xCF;
     uint8_t range_bits = 0;
     if (rangeA <= 2) {
@@ -188,6 +195,7 @@ uint8_t LIS3DH_set_range(uint8_t rangeA) {
  *  @returns The current range.
  */
 uint32_t LIS3DH_set_data_rate(uint32_t rate) {
+    
     uint8_t val = _get_reg(LIS3DH_CTRL_REG1) & 0x0F;
     bool normal_mode = (val < 8);
     if (rate == 0) {
@@ -238,6 +246,7 @@ uint32_t LIS3DH_set_data_rate(uint32_t rate) {
  * @param mode: The required LISD3H mode.
  */
 void LIS3DH_set_mode(uint8_t mode) {
+    
     _set_reg_bit(LIS3DH_CTRL_REG1, 3, mode & 0x01);
     _set_reg_bit(LIS3DH_CTRL_REG4, 3, mode & 0x02);
     _local_mode = mode;
@@ -245,6 +254,7 @@ void LIS3DH_set_mode(uint8_t mode) {
 
 
 void LIS3DH_configure_high_pass_filter(uint8_t filters, uint8_t cutoff, uint8_t mode) {
+    
     // clear and set filters
     filters = LIS3DH_HPF_DISABLED | filters;
     _set_reg(LIS3DH_CTRL_REG2, filters | cutoff | mode);
@@ -257,6 +267,7 @@ void LIS3DH_configure_high_pass_filter(uint8_t filters, uint8_t cutoff, uint8_t 
  * @param state: Enable the FIFO (`true`) or disable it (`false`).
  */
 void LIS3DH_configure_fifo(bool enable, uint8_t fifo_mode) {
+    
     // Enable/disable the FIFO
     _set_reg_bit(LIS3DH_CTRL_REG5, 6, enable ? 1 : 0);
 
@@ -326,6 +337,7 @@ void LIS3DH_configure_click_irq(bool enable, uint8_t click_type, float threshold
  * @param window:     Measurement window in integer milliseconds.
  */
 void LIS3DH_configure_free_fall_irq(bool enable, float threshold, uint8_t duration) {
+    
     LIS3DH_configure_inertial_irq(enable, threshold, duration, LIS3DH_AOI | LIS3DH_X_LOW | LIS3DH_Y_LOW | LIS3DH_Z_LOW);
 }
 
@@ -339,6 +351,7 @@ void LIS3DH_configure_free_fall_irq(bool enable, float threshold, uint8_t durati
  * @param options:   Bitfield indicated when an interrupt will be triggered.
  */
 void LIS3DH_configure_inertial_irq(bool enable, float threshold, uint8_t duration, uint8_t options) {
+    
     // Set the enable flag
     _set_reg_bit(LIS3DH_CTRL_REG3, 6, enable ? 1 : 0);
 
@@ -368,6 +381,7 @@ void LIS3DH_configure_inertial_irq(bool enable, float threshold, uint8_t duratio
  * @param enable: Latch (`true`) or unlatch (`false`) the interrupts.
  */
 void LIS3DH_configure_irq_latching(bool enable) {
+    
     _set_reg_bit(LIS3DH_CTRL_REG5, 3, enable ? 1 : 0);
     _set_reg_bit(LIS3DH_CLICK_THS, 7, enable ? 1 : 0);
 }
@@ -380,6 +394,7 @@ void LIS3DH_configure_irq_latching(bool enable) {
  *              (see lis3dh.h)
  */
 void LIS3DH_get_interrupt_table(InterruptTable* data) {
+    
     uint8_t int_1 = _get_reg(LIS3DH_INT1_SRC);
     uint8_t click = _get_reg(LIS3DH_CLICK_SRC);
     data->int_1 = (int_1 & 0x40) != 0;
@@ -402,6 +417,7 @@ void LIS3DH_get_interrupt_table(InterruptTable* data) {
  *              (see lis3dh.h)
  */
 void LIS3DH_get_fifo_stats(FifoState* data) {
+    
     uint8_t stats = _get_reg(LIS3DH_FIFO_SRC_REG);
     data->watermark = (stats & 0x80) != 0;
     data->overrun = (stats & 0x40) != 0;
@@ -413,7 +429,8 @@ void LIS3DH_get_fifo_stats(FifoState* data) {
 /**
  * @brief Set default values for registers.
  */
-void LIS3DH_reset() {
+void LIS3DH_reset(void) {
+    
     _set_reg(LIS3DH_CTRL_REG1, 0x07);
     _set_reg(LIS3DH_CTRL_REG2, 0x00);
     _set_reg(LIS3DH_CTRL_REG3, 0x00);
@@ -438,8 +455,11 @@ void LIS3DH_reset() {
 
 /**
  * @brief Read and return the Device ID (0x33).
+ *
+ * @returns The Device ID.
  */
-uint8_t LIS3DH_get_device_id() {
+uint8_t LIS3DH_get_device_id(void) {
+    
     return _get_reg(LIS3DH_WHO_AM_I);
 }
 
@@ -447,6 +467,7 @@ uint8_t LIS3DH_get_device_id() {
 /********************** PRIVATE METHODS *********************/
 
 static void _set_reg(uint8_t reg, uint8_t val) {
+    
     uint8_t send_data[2] = {0};
     send_data[0] = reg;
     send_data[1] = val;
@@ -454,6 +475,7 @@ static void _set_reg(uint8_t reg, uint8_t val) {
 }
 
 static void _set_reg_bit(uint8_t reg, uint8_t bit, bool state) {
+    
     uint8_t val = _get_reg(reg);
     
     if (state) {
@@ -466,6 +488,7 @@ static void _set_reg_bit(uint8_t reg, uint8_t bit, bool state) {
 }
 
 static uint8_t _get_reg(uint8_t reg) {
+    
     uint8_t result = 0;
     HAL_I2C_Master_Transmit(&i2c, LIS3DH_ADDR << 1, &reg,    1, 100);
     HAL_I2C_Master_Receive(&i2c,  LIS3DH_ADDR << 1, &result, 1, 100);
@@ -473,6 +496,7 @@ static uint8_t _get_reg(uint8_t reg) {
 }
 
 static void _get_multi_reg(uint8_t reg, uint8_t* result, uint8_t num_bytes) {
+    
     HAL_I2C_Master_Transmit(&i2c, LIS3DH_ADDR << 1, &reg,   1,         100);
     HAL_I2C_Master_Receive(&i2c,  LIS3DH_ADDR << 1, result, num_bytes, 100);
 }

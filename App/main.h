@@ -1,8 +1,8 @@
 /**
  *
  * Microvisor IoT Device Demo
- * Version 2.1.5
- * Copyright © 2022, Twilio
+ * Version 2.1.6
+ * Copyright © 2023, Twilio
  * Licence: Apache 2.0
  *
  */
@@ -30,6 +30,7 @@
 
 // App includes
 #include "logging.h"
+#include "uart_logging.h"
 #include "ht16k33.h"
 #include "i2c.h"
 #include "mcp9808.h"
@@ -61,6 +62,7 @@ extern "C" {
 #define     CHANNEL_KILL_PERIOD_MS      15000
 
 #define     HTTP_NT_BUFFER_SIZE_R       8             // NOTE Size in records, not bytes
+
 
 /*
  * ERRORS

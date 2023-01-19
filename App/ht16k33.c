@@ -1,8 +1,8 @@
 /**
  *
  * Microvisor IoT Device Demo
- * Version 2.1.5
- * Copyright © 2022, Twilio
+ * Version 2.1.6
+ * Copyright © 2023, Twilio
  * Licence: Apache 2.0
  *
  */
@@ -36,7 +36,8 @@ uint8_t         display_buffer[17];
 /**
  * @brief Power on the LEDs and set the brightness.
  */
-void HT16K33_init() {
+void HT16K33_init(void) {
+    
     HT16K33_write_cmd(0x21);     // System on
     HT16K33_write_cmd(0x81);     // Display on
     HT16K33_write_cmd(0xEF);     // Set brightness
@@ -50,6 +51,7 @@ void HT16K33_init() {
  * @param cmd: The single-byte command.
  */
 static void HT16K33_write_cmd(uint8_t cmd) {
+    
     HAL_I2C_Master_Transmit(&i2c, HT16K33_I2C_ADDR << 1, &cmd, 1, 100);
 }
 
@@ -59,17 +61,17 @@ static void HT16K33_write_cmd(uint8_t cmd) {
  *
  *  This does not clear the LED -- call `HT16K33_draw()`.
  */
-void HT16K33_clear_buffer() {
-    for (uint8_t i = 0 ; i < 17 ; ++i) {
-        display_buffer[i] = 0;
-    }
+void HT16K33_clear_buffer(void) {
+    
+    memset(display_buffer, 0x00, 17);
 }
 
 
 /**
  * @brief Write the display buffer out to the LED.
  */
-void HT16K33_draw() {
+void HT16K33_draw(void) {
+    
     // Set up the buffer holding the data to be
     // transmitted to the LED
     uint8_t tx_buffer[17] = { 0 };
@@ -88,6 +90,7 @@ void HT16K33_draw() {
  *                  `false` otherwise.
  */
 void HT16K33_show_value(int16_t value, bool decimal) {
+    
     // Convert the value to BCD...
     uint16_t bcd_val = bcd(value);
     HT16K33_clear_buffer();
@@ -107,6 +110,7 @@ void HT16K33_show_value(int16_t value, bool decimal) {
  *                   `false` otherwise.
  */
 void HT16K33_set_number(uint8_t number, uint8_t digit, bool has_dot) {
+    
     if (digit > 3) return;
     if (number > 9) return;
     HT16K33_set_alpha('0' + number, digit, has_dot);
@@ -134,6 +138,7 @@ void HT16K33_set_number(uint8_t number, uint8_t digit, bool has_dot) {
  *                  `false` otherwise.
  */
 void HT16K33_set_glyph(uint8_t glyph, uint8_t digit, bool has_dot) {
+    
     if (digit > 3) return;
     display_buffer[POS[digit]] = glyph;
     if (has_dot) display_buffer[POS[digit]] |= 0x80;
@@ -149,6 +154,7 @@ void HT16K33_set_glyph(uint8_t glyph, uint8_t digit, bool has_dot) {
  *                 `false` otherwise.
  */
 void HT16K33_set_alpha(char chr, uint8_t digit, bool has_dot) {
+    
     if (digit > 3) return;
 
     uint8_t char_val = 0xFF;
@@ -172,6 +178,7 @@ void HT16K33_set_alpha(char chr, uint8_t digit, bool has_dot) {
  *                 `false` otherwise.
  */
 void HT16K33_set_point(uint8_t digit, bool is_set) {
+    
     if (digit > 3) return;
     if (is_set) {
         display_buffer[POS[digit]] |= 0x80;
@@ -188,6 +195,7 @@ void HT16K33_set_point(uint8_t digit, bool is_set) {
  * @returns The BCD form of the value.
  */
 static uint32_t bcd(uint32_t base) {
+    
     if (base > 9999) base = 9999;
     for (uint32_t i = 0 ; i < 16 ; ++i) {
         base = base << 1;

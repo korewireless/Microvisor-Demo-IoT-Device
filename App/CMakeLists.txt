@@ -2,8 +2,8 @@ cmake_minimum_required(VERSION 3.14)
 
 # Set application data
 set(APP "Microvisor IoT Device Demo")
-set(VERSION_NUMBER "2.1.5")
-set(BUILD_NUMBER "0")
+set(VERSION_NUMBER "2.1.6")
+set(BUILD_NUMBER "17")
 
 message("Building ${APP} ${VERSION_NUMBER} build ${BUILD_NUMBER}")
 
@@ -27,10 +27,11 @@ add_executable(${PROJECT_NAME}
     ht16k33.c
     http.c
     i2c.c
+    lis3dh.c
     logging.c
     mcp9808.c
-    lis3dh.c
     stm32u5xx_hal_timebase_tim_template.c
+    uart_logging.c
 )
 
 # Link libraries

@@ -24,8 +24,8 @@ static void     _get_multi_reg(uint8_t reg, uint8_t* result, uint8_t num_bytes);
 extern I2C_HandleTypeDef i2c;
 
 // Data
-uint8_t _local_mode = LIS3DH_MODE_NORMAL;
-uint8_t _local_range = 0;
+static uint8_t _local_mode = LIS3DH_MODE_NORMAL;
+static uint8_t _local_range = 0;
 
 
 /**

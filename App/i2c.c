@@ -23,7 +23,7 @@ extern      bool                use_i2c;
 
 
 /**
- * @brief Configure STM32U585 I2C1.
+ * @brief Initialize STM32U585 I2C1.
  */
 void I2C_init(void) {
     
@@ -31,7 +31,7 @@ void I2C_init(void) {
     //   SDA -> PB9
     //   SCL -> PB6
     i2c.Instance              = I2C1;
-    i2c.Init.Timing           = 0x00C01F67;  // FROM ST SAMPLE // 0x00310309
+    i2c.Init.Timing           = 0x00C01F67;  // FROM ST SAMPLE
     i2c.Init.AddressingMode   = I2C_ADDRESSINGMODE_7BIT;
     i2c.Init.DualAddressMode  = I2C_DUALADDRESS_DISABLE;
     i2c.Init.OwnAddress1      = 0x00;
@@ -52,19 +52,18 @@ void I2C_init(void) {
 
 
 /**
- * @brief Check there is a device at the specified address.
- *        Board LED flashed 8 times on fail.
+ * @brief Check for presence of a known device by its I2C address.
  *
- * @param address 7-bit I2C address.
+ * @param addr: The device's address.
  *
- * @returns `true` if the I2C device is present, otherwise `false`.
+ * @returns `true` if the device is present, otherwise `false`.
  */
-static bool I2C_check(uint8_t address) {
+static bool I2C_check(uint8_t addr) {
     
     uint8_t timeout_count = 0;
 
     while(true) {
-        HAL_StatusTypeDef status = HAL_I2C_IsDeviceReady(&i2c, address << 1, 1, 100);
+        HAL_StatusTypeDef status = HAL_I2C_IsDeviceReady(&i2c, addr << 1, 1, 100);
         if (status == HAL_OK) {
             return true;
         } else {
@@ -89,7 +88,7 @@ static bool I2C_check(uint8_t address) {
 
 
 /**
- * @brief Scan the I2C bus and list any devices preseent.
+ * @brief Scan for and list I2C devices on the bus.
  */
 void I2C_scan(void) {
     
@@ -132,7 +131,7 @@ void HAL_I2C_MspInit(I2C_HandleTypeDef *i2c) {
     gpioConfig.Pin       = GPIO_PIN_6 | GPIO_PIN_9;
     gpioConfig.Mode      = GPIO_MODE_AF_OD;
     gpioConfig.Pull      = GPIO_NOPULL;
-    gpioConfig.Speed     = GPIO_SPEED_FREQ_HIGH;
+    gpioConfig.Speed     = GPIO_SPEED_FREQ_LOW;
     gpioConfig.Alternate = GPIO_AF4_I2C1;
 
     // Initialize the pins with the setup data

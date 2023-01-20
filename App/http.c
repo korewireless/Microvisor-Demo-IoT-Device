@@ -22,8 +22,8 @@ struct {
 
 // Central store for HTTP request management notification records.
 // Holds HTTP_NT_BUFFER_SIZE_R records at a time -- each record is 16 bytes in size.
-volatile struct MvNotification http_notification_center[HTTP_NT_BUFFER_SIZE_R] __attribute__((aligned(8)));
-volatile uint32_t current_notification_index = 0;
+static volatile struct MvNotification http_notification_center[HTTP_NT_BUFFER_SIZE_R] __attribute__((aligned(8)));
+static volatile uint32_t current_notification_index = 0;
 
 // Defined in `main.c`
 extern volatile bool received_request;
@@ -124,7 +124,7 @@ void http_notification_center_setup(void) {
     // Start the notification IRQ
     NVIC_ClearPendingIRQ(TIM8_BRK_IRQn);
     NVIC_EnableIRQ(TIM8_BRK_IRQn);
-    server_log("HTTP notification center handle: %lu", (uint32_t)http_handles.notification);
+    server_log("HTTP NC handle: %lu", (uint32_t)http_handles.notification);
 }
 
 
@@ -306,8 +306,11 @@ void http_show_channel_closure(void) {
             default:
                 server_error("Reason unknown");
         }
-    } else {
-        server_error("Reason unknown");
+    }
+    
+    if (channel_was_closed) {
+        channel_was_closed = false;
+        server_error("IRQ");
     }
 }
 

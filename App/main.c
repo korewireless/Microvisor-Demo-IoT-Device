@@ -24,20 +24,20 @@ static void log_device_info(void);
  */
 // This is the FreeRTOS thread task that flashed the USER LED
 // and operates the display
-osThreadId_t task_led;
-const osThreadAttr_t led_task_attributes = {
+static osThreadId_t task_led;
+static const osThreadAttr_t led_task_attributes = {
     .name = "LEDTask",
     .stack_size = 2560,
-    .priority = (osPriority_t) osPriorityNormal
+    .priority = (osPriority_t)osPriorityNormal
 };
 
 // This is the FreeRTOS thread task that reads the sensor
 // and displays the temperature on the LED
-osThreadId_t task_iot;
-const osThreadAttr_t iot_task_attributes = {
+static osThreadId_t task_iot;
+static const osThreadAttr_t iot_task_attributes = {
     .name = "IOTTask",
-    .stack_size = 4096,
-    .priority = (osPriority_t) osPriorityNormal
+    .stack_size = 5120,
+    .priority = (osPriority_t)osPriorityNormal
 };
 
 // I2C-related values
@@ -50,13 +50,14 @@ I2C_HandleTypeDef i2c;
  *  doesn't render them immutable at runtime
  */
 volatile bool use_i2c = false;
-volatile bool got_sensor_temp = false;
-volatile bool got_sensor_accl = false;
 volatile bool received_request = false;
 volatile bool channel_was_closed = false;
-volatile bool is_connected = false;
-volatile double temp = 0.0;
-volatile bool interrupt_triggered = false;
+
+static volatile double temp = 0.0;
+static volatile bool is_connected = false;
+static volatile bool interrupt_triggered = false;
+static volatile bool got_sensor_temp = false;
+static volatile bool got_sensor_accl = false;
 
 /**
  * These variables are defined in `http.c`
@@ -290,26 +291,26 @@ static void iot_task(void *argument) {
                     kill_time = tick;
                 } else {
                     server_error("Channel handle not zero");
+                    do_close_channel = true;
                 }
             }
             
             // Process a request's response if indicated by the ISR
-            if (received_request) {
-                http_process_response();
-            }
+            if (received_request) http_process_response();
             
             // FROM 2.1.6
             // Was the channel closed unexpectedly?
             // `channel_was_closed` set in IRS
             if (channel_was_closed) {
                 http_show_channel_closure();
-                channel_was_closed = false;
+                do_close_channel = true;
             }
             
             // Use 'kill_time' to force-close an open HTTP channel
             // if it's been left open too long
             if (kill_time > 0 && tick - kill_time > CHANNEL_KILL_PERIOD_MS) {
                 do_close_channel = true;
+                server_log("TIMEOUT");
             }
             
             // Close the channel if asked to do so or
@@ -371,7 +372,9 @@ void report_and_assert(uint16_t err_code) {
     HT16K33_set_glyph(0x79, 0, false);
     HT16K33_set_glyph(0x00, 1, false);
     HT16K33_draw();
-
+    
+    server_log("ASSERTING (%i)", err_code);
+    
     // Halt everything
     vTaskSuspendAll();
     assert(false);

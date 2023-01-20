@@ -31,7 +31,7 @@
 // App includes
 #include "logging.h"
 #include "uart_logging.h"
-#include "ht16k33.h"
+#include "ht16k33-seg.h"
 #include "i2c.h"
 #include "mcp9808.h"
 #include "lis3dh.h"

@@ -24,7 +24,7 @@ message("URL set to: $ENV{MVIOT_URL}")
 # Compile app source code file(s)
 add_executable(${PROJECT_NAME}
     main.c
-    ht16k33.c
+    ht16k33-seg.c
     http.c
     i2c.c
     lis3dh.c

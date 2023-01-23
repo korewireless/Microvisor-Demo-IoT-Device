@@ -310,7 +310,7 @@ static void iot_task(void *argument) {
             // if it's been left open too long
             if (kill_time > 0 && tick - kill_time > CHANNEL_KILL_PERIOD_MS) {
                 do_close_channel = true;
-                server_log("TIMEOUT");
+                server_error("HTTP request timed out");
             }
             
             // Close the channel if asked to do so or

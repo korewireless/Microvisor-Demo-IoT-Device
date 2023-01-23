@@ -136,53 +136,55 @@ void http_notification_center_setup(void) {
 enum MvStatus http_send_warning(void) {
     
     // Check for a valid channel handle
-    if (http_handles.channel != 0) {
-        server_log("Sending HTTP request");
-
-        const char base[] = "{\"warning\":\"movement detected\"}";
-
-        // Set up the request
-        const char verb[] = "POST";
-        const char uri[] = API_URL;
-
-        // Add a header
-        const char header_text[] = "Content-Type: application/json";
-        struct MvHttpHeader header = {
-            .data = (uint8_t *)header_text,
-            .length = strlen(header_text)
-        };
-
-        struct MvHttpHeader headers[] = { header };
-        struct MvHttpRequest request_config = {
-            .method = (uint8_t *)verb,
-            .method_len = strlen(verb),
-            .url = (uint8_t *)uri,
-            .url_len = strlen(uri),
-            .num_headers = 1,
-            .headers = headers,
-            .body = (uint8_t *)base,
-            .body_len = strlen(base),
-            .timeout_ms = 10000
-        };
-
-        // Issue the request -- and check its status
-        enum MvStatus status = mvSendHttpRequest(http_handles.channel, &request_config);
-        if (status == MV_STATUS_OKAY) {
-            server_log("Request sent to Twilio");
-        } else if (status == MV_STATUS_CHANNELCLOSED) {
-            server_error("HTTP channel %lu closed unexpectedly", (uint32_t)http_handles.channel);
-        } else {
-            server_error("Could not issue request. Status: %i", status);
-        }
-        
-        return status;
+    if (http_handles.channel == 0) {
+        // There's no open channel, so open open one now and
+        // try to send again
+        http_open_channel();
+        return http_send_warning();
     }
 
-    // There's no open channel, so open open one now and
-    // try to send again
-    http_open_channel();
-    return http_send_warning();
+    server_log("Sending HTTP request");
+
+    static const char base[] = "{\"warning\":\"movement detected\"}";
+
+    // Set up the request
+    static const char verb[] = "POST";
+    static const char uri[] = API_URL;
+
+    // Add a header
+    static const char header_text[] = "Content-Type: application/json";
+    struct MvHttpHeader header = {
+        .data = (uint8_t *)header_text,
+        .length = strlen(header_text)
+    };
+
+    struct MvHttpHeader headers[] = { header };
+    struct MvHttpRequest request_config = {
+        .method = (uint8_t *)verb,
+        .method_len = strlen(verb),
+        .url = (uint8_t *)uri,
+        .url_len = strlen(uri),
+        .num_headers = 1,
+        .headers = headers,
+        .body = (uint8_t *)base,
+        .body_len = strlen(base),
+        .timeout_ms = 10000
+    };
+
+    // Issue the request -- and check its status
+    enum MvStatus status = mvSendHttpRequest(http_handles.channel, &request_config);
+    if (status == MV_STATUS_OKAY) {
+        server_log("Request sent to Twilio");
+    } else if (status == MV_STATUS_CHANNELCLOSED) {
+        server_error("HTTP channel %lu already closed", (uint32_t)http_handles.channel);
+    } else {
+        server_error("Could not issue request. Status: %i", status);
+    }
+    
+    return status;
 }
+
+
 /**
  * @brief Send a stock HTTP request.
  *
@@ -191,127 +193,53 @@ enum MvStatus http_send_warning(void) {
 enum MvStatus http_send_request(double temp) {
     
     // Check for a valid channel handle
-    if (http_handles.channel != 0) {
-        server_log("Sending HTTP request");
-
-        char body[48] = {0};
-        snprintf(body, 47, "{\"temp\":%.02f}", temp);
-
-        // Set up the request
-        const char verb[] = "POST";
-        const char uri[] = API_URL;
-
-        // Add a header
-        const char header_text[] = "Content-Type: application/json";
-        struct MvHttpHeader header = {
-            .data = (uint8_t *)header_text,
-            .length = strlen(header_text)
-        };
-
-        struct MvHttpHeader headers[] = { header };
-        struct MvHttpRequest request_config = {
-            .method = (uint8_t *)verb,
-            .method_len = strlen(verb),
-            .url = (uint8_t *)uri,
-            .url_len = strlen(uri),
-            .num_headers = 1,
-            .headers = headers,
-            .body = (uint8_t *)body,
-            .body_len = strlen(body),
-            .timeout_ms = 10000
-        };
-
-        // Issue the request -- and check its status
-        enum MvStatus status = mvSendHttpRequest(http_handles.channel, &request_config);
-        if (status == MV_STATUS_OKAY) {
-            server_log("Request sent to Twilio");
-        } else if (status == MV_STATUS_CHANNELCLOSED) {
-            http_show_channel_closure();
-        } else {
-            server_error("Could not issue request. Status: %i", status);
-        }
-        
-        return status;
+    if (http_handles.channel == 0) {
+        // There's no open channel, so open open one now and
+        // try to send again
+        http_open_channel();
+        return http_send_request(temp);
     }
 
-    // There's no open channel, so open open one now and
-    // try to send again
-    http_open_channel();
-    return http_send_request(temp);
-}
+    server_log("Sending HTTP request");
 
+    static char body[48] = {0};
+    snprintf(body, 47, "{\"temp\":%.02f}", temp);
 
-/**
- * @brief Process HTTP response data.
- */
-void http_process_response(void) {
-    
-    // We have received data via the active HTTP channel so establish
-    // an `MvHttpResponseData` record to hold response metadata
-    struct MvHttpResponseData resp_data;
-    enum MvStatus status = mvReadHttpResponseData(http_handles.channel, &resp_data);
+    // Set up the request
+    static const char verb[] = "POST";
+    static const char uri[] = API_URL;
+
+    // Add a header
+    static const char header_text[] = "Content-Type: application/json";
+    struct MvHttpHeader header = {
+        .data = (uint8_t *)header_text,
+        .length = strlen(header_text)
+    };
+
+    struct MvHttpHeader headers[] = { header };
+    struct MvHttpRequest request_config = {
+        .method = (uint8_t *)verb,
+        .method_len = strlen(verb),
+        .url = (uint8_t *)uri,
+        .url_len = strlen(uri),
+        .num_headers = 1,
+        .headers = headers,
+        .body = (uint8_t *)body,
+        .body_len = strlen(body),
+        .timeout_ms = 10000
+    };
+
+    // Issue the request -- and check its status
+    enum MvStatus status = mvSendHttpRequest(http_handles.channel, &request_config);
     if (status == MV_STATUS_OKAY) {
-        // Check we successfully issued the request (`result` is OK) and
-        // the request was successful (status code 200)
-        if (resp_data.result == MV_HTTPRESULT_OK) {
-            if (resp_data.status_code == 200) {
-                server_log("HTTP response header count: %lu", resp_data.num_headers);
-                server_log("HTTP response body length: %lu", resp_data.body_length);
-                
-                // Set up a buffer that we'll get Microvisor to write
-                // the response body into
-                uint8_t buffer[resp_data.body_length + 1];
-                memset((void *)buffer, 0x00, resp_data.body_length + 1);
-                status = mvReadHttpResponseBody(http_handles.channel, 0, buffer, resp_data.body_length);
-                if (status == MV_STATUS_OKAY) {
-                    // Retrieved the body data successfully so log it
-                    server_log("Message body:\n%s", buffer);
-                } else {
-                    server_error("HTTP response body read status %i", status);
-                }
-            } else {
-                server_error("HTTP status code: %lu", resp_data.status_code);
-            }
-        } else {
-            server_error("Request failed. Status: %i", resp_data.result);
-        }
+        server_log("Request sent to Twilio");
+    } else if (status == MV_STATUS_CHANNELCLOSED) {
+        server_error("HTTP channel %lu already closed", (uint32_t)http_handles.channel);
     } else {
-        server_error("Response data read failed. Status: %i", status);
-    }
-}
-
-
-/**
- *  @brief Display a reason for an unexpectedly closed channel.
- */
-void http_show_channel_closure(void) {
-    
-    // FROM 2.1.6
-    server_error("HTTP channel %lu closed unexpectedly", http_handles.channel);
-    enum MvClosureReason reason = 0;
-    if (mvGetChannelClosureReason(http_handles.channel, &reason) == MV_STATUS_OKAY) {
-        switch(reason) {
-            case 1:
-                server_error("The channel was closed by the server");
-                break;
-            case 2:
-                server_error("The server reset the channel");
-                break;
-            case 3:
-                server_error("The channel was closed because the network was disconnected");
-                break;
-            case 4:
-                server_error("The connection to the server was terminated due to an error");
-                break;
-            default:
-                server_error("Reason unknown");
-        }
+        server_error("Could not issue request. Status: %i", status);
     }
     
-    if (channel_was_closed) {
-        channel_was_closed = false;
-        server_error("IRQ");
-    }
+    return status;
 }
 
 

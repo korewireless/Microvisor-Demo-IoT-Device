@@ -23,8 +23,6 @@ bool            http_open_channel(void);
 void            http_close_channel(void);
 enum MvStatus   http_send_request(double temp);
 enum MvStatus   http_send_warning(void);
-void            http_process_response(void);
-void            http_show_channel_closure(void);
 
 
 #ifdef __cplusplus

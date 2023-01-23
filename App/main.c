@@ -16,6 +16,7 @@ static void system_clock_config(void);
 static void GPIO_init(void);
 static void led_task(void *argument);
 static void iot_task(void *argument);
+static void process_http_response(void);
 static void log_device_info(void);
 
 
@@ -296,15 +297,12 @@ static void iot_task(void *argument) {
             }
             
             // Process a request's response if indicated by the ISR
-            if (received_request) http_process_response();
+            if (received_request) process_http_response();
             
             // FROM 2.1.6
             // Was the channel closed unexpectedly?
             // `channel_was_closed` set in IRS
-            if (channel_was_closed) {
-                http_show_channel_closure();
-                do_close_channel = true;
-            }
+            if (channel_was_closed) do_close_channel = true;
             
             // Use 'kill_time' to force-close an open HTTP channel
             // if it's been left open too long
@@ -344,6 +342,46 @@ static void iot_task(void *argument) {
 
         // End of cycle delay
         osDelay(10);
+    }
+}
+
+
+/**
+ * @brief Process HTTP response data.
+ */
+static void process_http_response(void) {
+    
+    // We have received data via the active HTTP channel so establish
+    // an `MvHttpResponseData` record to hold response metadata
+    struct MvHttpResponseData resp_data;
+    enum MvStatus status = mvReadHttpResponseData(http_handles.channel, &resp_data);
+    if (status == MV_STATUS_OKAY) {
+        // Check we successfully issued the request (`result` is OK) and
+        // the request was successful (status code 200)
+        if (resp_data.result == MV_HTTPRESULT_OK) {
+            if (resp_data.status_code == 200) {
+                server_log("HTTP response header count: %lu", resp_data.num_headers);
+                server_log("HTTP response body length: %lu", resp_data.body_length);
+                
+                // Set up a buffer that we'll get Microvisor to write
+                // the response body into
+                uint8_t buffer[resp_data.body_length + 1];
+                memset((void *)buffer, 0x00, resp_data.body_length + 1);
+                status = mvReadHttpResponseBody(http_handles.channel, 0, buffer, resp_data.body_length);
+                if (status == MV_STATUS_OKAY) {
+                    // Retrieved the body data successfully so log it
+                    server_log("Message body:\n%s", buffer);
+                } else {
+                    server_error("HTTP response body read status %i", status);
+                }
+            } else {
+                server_error("HTTP status code: %lu", resp_data.status_code);
+            }
+        } else {
+            server_error("Request failed. Status: %i", resp_data.result);
+        }
+    } else {
+        server_error("Response data read failed. Status: %i", status);
     }
 }
 

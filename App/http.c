@@ -30,9 +30,9 @@ extern volatile bool received_request;
 extern volatile bool channel_was_closed;
 
 /**
- *  @brief Open a new HTTP channel.
+ * @brief Open a new HTTP channel.
  *
- *  @returns `true` if the channel is open, otherwise `false`.
+ * @returns `true` if the channel is open, otherwise `false`.
  */
 bool http_open_channel(void) {
     
@@ -79,7 +79,7 @@ bool http_open_channel(void) {
 
 
 /**
- *  @brief Close the currently open HTTP channel.
+ * @brief Close the currently open HTTP channel.
  */
 void http_close_channel(void) {
     
@@ -244,10 +244,10 @@ enum MvStatus http_send_request(double temp) {
 
 
 /**
- *  @brief The HTTP channel notification interrupt handler.
+ * @brief The HTTP channel notification interrupt handler.
  *
- *  This is called by Microvisor -- we need to check for key events
- *  and extract HTTP response data when it is available.
+ * This is called by Microvisor -- we need to check for key events
+ * and extract HTTP response data when it is available.
  */
 void TIM8_BRK_IRQHandler(void) {
     

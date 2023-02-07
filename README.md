@@ -1,4 +1,4 @@
-# Twilio Microvisor IoT Device Demo 2.1.6
+# Twilio Microvisor IoT Device Demo 3.0.0
 
 This repo provides a basic demonstration of a sample IoT device application. It makes use of a temperature sensor and four-digit display to periodically read and present the local temperature. It transmits the data to a mock API. A motion sensor detects double-taps, which trigger warning messages to the mock API.
 
@@ -9,6 +9,8 @@ The [ARM CMSIS-RTOS API](https://github.com/ARM-software/CMSIS_5) is used an an 
 The application code files can be found in the [`App/`](App/) directory. The [`ST_Code/`](ST_Code/) directory contains required components that are not part of Twilio Microvisor STM32U5 HAL, which this sample accesses as a submodule. The `FreeRTOSConfig.h` and `stm32u5xx_hal_conf.h` configuration files are located in the [config/](config/) directory.
 
 ## Release Notes
+
+Version 3.0.0 requires Microvisor kernel 0.5.0 or above.
 
 Version 2.1.6 adds optional [logging over UART](#uart-logging).
  

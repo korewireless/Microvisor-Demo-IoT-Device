@@ -6,8 +6,8 @@
  * Licence: Apache 2.0
  *
  */
-#ifndef _I2C_HEADER_
-#define _I2C_HEADER_
+#ifndef _NETWORK_H_
+#define _NETWORK_H_
 
 
 #ifdef __cplusplus
@@ -16,16 +16,10 @@ extern "C" {
 
 
 /*
- * CONSTANTS
- */
-#define     I2C_GPIO_BANK           GPIOB
-
-
-/*
  * PROTOTYPES
  */
-void I2C_init(void);
-void I2C_scan(void);
+void            net_open_network(void);
+MvNetworkHandle get_net_handle(void);
 
 
 #ifdef __cplusplus
@@ -33,4 +27,4 @@ void I2C_scan(void);
 #endif
 
 
-#endif  // _I2C_HEADER_
+#endif      // _NETWORK_H_

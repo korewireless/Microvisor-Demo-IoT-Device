@@ -1,7 +1,7 @@
 /**
  *
  * Microvisor IoT Device Demo
- * Version 2.1.6
+ * Version 3.0.0
  * Copyright © 2023, Twilio
  * Licence: Apache 2.0
  *
@@ -81,13 +81,16 @@ int main(void) {
     // Configure the system clock
     system_clock_config();
     
+    // Get the Device ID and build number
+    log_device_info();
+    
+    // Start the network
+    net_open_network();
+
     // Initialize the peripherals
     GPIO_init();
     I2C_init();
     
-    // Get the Device ID and build number
-    log_device_info();
-
     // FROM 1.1.0
     // Signal app start on LED
     // (`use_i2c` set by `I2C_init()`)

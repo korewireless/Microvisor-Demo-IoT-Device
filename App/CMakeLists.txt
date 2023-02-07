@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.14)
 
 # Set application data
 set(APP "Microvisor IoT Device Demo")
-set(VERSION_NUMBER "2.1.6")
+set(VERSION_NUMBER "3.0.0")
 set(BUILD_NUMBER "0")
 
 message("Building ${APP} ${VERSION_NUMBER} build ${BUILD_NUMBER}")
@@ -23,15 +23,16 @@ message("URL set to: $ENV{MVIOT_URL}")
 
 # Compile app source code file(s)
 add_executable(${PROJECT_NAME}
-    main.c
     ht16k33-seg.c
     http.c
     i2c.c
     lis3dh.c
     logging.c
+    main.c
     mcp9808.c
-    stm32u5xx_hal_timebase_tim_template.c
+    network.c
     uart_logging.c
+    stm32u5xx_hal_timebase_tim_template.c
 )
 
 # Link libraries

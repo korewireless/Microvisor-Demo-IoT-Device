@@ -1,7 +1,7 @@
 /**
  *
  * Microvisor IoT Device Demo
- * Version 2.1.6
+ * Version 3.0.0
  * Copyright © 2023, Twilio
  * Licence: Apache 2.0
  *
@@ -36,6 +36,7 @@
 #include "mcp9808.h"
 #include "lis3dh.h"
 #include "http.h"
+#include "network.h"
 
 
 #ifdef __cplusplus

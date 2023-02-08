@@ -243,7 +243,7 @@ static void led_task(void *argument) {
                 is_connected = (net_state == MV_NETWORKSTATUS_CONNECTED);
             }
         } else {
-            http_handles.network = get_net_handle();
+            http_handles.network = net_get_handle();
         }
 
         // Display the temperature

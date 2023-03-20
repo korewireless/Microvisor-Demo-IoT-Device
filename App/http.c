@@ -39,7 +39,6 @@ bool http_open_channel(void) {
     // Set up the HTTP channel's multi-use send and receive buffers
     static volatile uint8_t http_rx_buffer[1536] __attribute__((aligned(512)));
     static volatile uint8_t http_tx_buffer[512] __attribute__((aligned(512)));
-    static const char endpoint[] = "";
 
     // Get the network channel handle.
     // NOTE This is set in `logging.c` which puts the network in place
@@ -60,8 +59,10 @@ bool http_open_channel(void) {
             .send_buffer         = (uint8_t*)http_tx_buffer,
             .send_buffer_len     = sizeof(http_tx_buffer),
             .channel_type        = MV_CHANNELTYPE_HTTP,
-            .endpoint            = (uint8_t*)endpoint,
-            .endpoint_len        = 0
+            .endpoint            = {
+                .data = (uint8_t*)"",
+                .length = 0
+            }
         }
     };
 
@@ -145,7 +146,7 @@ enum MvStatus http_send_warning(void) {
 
     server_log("Sending HTTP request");
 
-    static const char base[] = "{\"warning\":\"movement detected\"}";
+    static const char body[] = "{\"warning\":\"movement detected\"}";
 
     // Set up the request
     static const char verb[] = "POST";
@@ -160,14 +161,20 @@ enum MvStatus http_send_warning(void) {
 
     struct MvHttpHeader headers[] = { header };
     struct MvHttpRequest request_config = {
-        .method = (uint8_t *)verb,
-        .method_len = strlen(verb),
-        .url = (uint8_t *)uri,
-        .url_len = strlen(uri),
-        .num_headers = 1,
+        .method = {
+            .data = (uint8_t *)verb,
+            .length = strlen(verb)
+        },
+        .url = {
+            .data = (uint8_t *)uri,
+            .length = strlen(uri)
+        },
+        .num_headers = 0,
         .headers = headers,
-        .body = (uint8_t *)base,
-        .body_len = strlen(base),
+        .body = {
+            .data = (uint8_t *)body,
+            .length = strlen(body)
+        },
         .timeout_ms = 10000
     };
 
@@ -218,14 +225,20 @@ enum MvStatus http_send_request(double temp) {
 
     struct MvHttpHeader headers[] = { header };
     struct MvHttpRequest request_config = {
-        .method = (uint8_t *)verb,
-        .method_len = strlen(verb),
-        .url = (uint8_t *)uri,
-        .url_len = strlen(uri),
-        .num_headers = 1,
+        .method = {
+            .data = (uint8_t *)verb,
+            .length = strlen(verb)
+        },
+        .url = {
+            .data = (uint8_t *)uri,
+            .length = strlen(uri)
+        },
+        .num_headers = 0,
         .headers = headers,
-        .body = (uint8_t *)body,
-        .body_len = strlen(body),
+        .body = {
+            .data = (uint8_t *)body,
+            .length = strlen(body)
+        },
         .timeout_ms = 10000
     };
 

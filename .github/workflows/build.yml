@@ -10,16 +10,11 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     steps:
-    - name: Check out code
+    - name: Get application code
       uses: actions/checkout@v3
       with:
         submodules: 'recursive'
-    - name: Build docker image
+    - name: Build Docker image
       run: docker build --build-arg UID=$(id -u) --build-arg GID=$(id -g) -t microvisor-iot-image .
-    - name: Build code
+    - name: Build application code
       run: docker run --rm -v $(pwd)/:/home/mvisor/project/ --env MICROVISOR_GITHUB_ACTION_IOT_TEST=true --name microvisor-iot microvisor-iot-image
-    - name: Upload artifacts
-      uses: actions/upload-artifact@v3
-      with:
-        name: mv-iot-device-demo
-        path: ${{ github.workspace }}/build/App/mv-iot-device-demo.*

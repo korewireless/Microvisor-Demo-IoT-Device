@@ -17,4 +17,4 @@ jobs:
     - name: Build Docker image
       run: docker build --build-arg UID=$(id -u) --build-arg GID=$(id -g) -t microvisor-iot-image .
     - name: Build application code
-      run: docker run --rm -v $(pwd)/:/home/mvisor/project/ --env MICROVISOR_GITHUB_ACTION_IOT_TEST=true --name microvisor-iot microvisor-iot-image
+      run: docker run --rm -v $(pwd)/:/home/mvisor/project/ --env BUILD_ONLY=true --name microvisor-iot microvisor-iot-image

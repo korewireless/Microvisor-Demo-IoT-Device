@@ -29,7 +29,7 @@ static void log_device_info(void);
 static osThreadId_t task_led;
 static const osThreadAttr_t led_task_attributes = {
     .name = "LEDTask",
-    .stack_size = 2560,
+    .stack_size = 4096,
     .priority = (osPriority_t)osPriorityNormal
 };
 
@@ -38,7 +38,7 @@ static const osThreadAttr_t led_task_attributes = {
 static osThreadId_t task_iot;
 static const osThreadAttr_t iot_task_attributes = {
     .name = "IOTTask",
-    .stack_size = 5120,
+    .stack_size = 4096,
     .priority = (osPriority_t)osPriorityNormal
 };
 

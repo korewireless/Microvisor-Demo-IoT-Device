@@ -1,7 +1,7 @@
 /**
  *
  * Microvisor IoT Device Demo
- * Version 3.0.2
+ * Version 3.0.3
  * Copyright © 2023, Twilio
  * Licence: Apache 2.0
  *
@@ -38,7 +38,7 @@ static const osThreadAttr_t led_task_attributes = {
 static osThreadId_t task_iot;
 static const osThreadAttr_t iot_task_attributes = {
     .name = "IOTTask",
-    .stack_size = 4096,
+    .stack_size = 8192,
     .priority = (osPriority_t)osPriorityNormal
 };
 

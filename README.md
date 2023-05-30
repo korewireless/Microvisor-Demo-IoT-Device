@@ -1,4 +1,4 @@
-# Twilio Microvisor IoT Device Demo 3.0.2
+# Twilio Microvisor IoT Device Demo 3.0.3
 
 This repo provides a basic demonstration of a sample IoT device application. It makes use of a temperature sensor and four-digit display to periodically read and present the local temperature. It transmits the data to a mock API. A motion sensor detects double-taps, which trigger warning messages to the mock API.
 
@@ -10,12 +10,7 @@ The application code files can be found in the [`App/`](App/) directory. The [`S
 
 ## Release Notes
 
-* 3.0.0 requires Microvisor kernel 0.5.0 or above, and [Twilio CLI Microvisor Plugin 0.3.10](https://www.twilio.com/docs/iot/microvisor/the-twilio-cli-microvisor-plugin) or above.
-* 2.1.6 adds optional [logging over UART](#uart-logging).
-* 2.1.5 adds [Docker support](#docker).
-* 2.1.4 makes no code changes but adds support for remote debugging via [Visual Studio Code](https://code.visualstudio.com/).
-* 2.1.0 adds support for an [STMicro LIS3DH accelerometer](https://www.adafruit.com/product/2809) for motion detection.
-* 2.0.0 replaces earlier `printf()`-based application logging with Microvisor’s application logging system calls.
+* 3.0.x requires Microvisor kernel 0.5.0 or above, and [Twilio CLI Microvisor Plugin 0.3.10](https://www.twilio.com/docs/iot/microvisor/the-twilio-cli-microvisor-plugin) or above.
 
 ## Cloning the Repo
 

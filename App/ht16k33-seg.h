@@ -1,24 +1,24 @@
 /**
  *
  * Microvisor IoT Device Demo
- * Version 3.0.3
- * Copyright © 2023, Twilio
- * Licence: Apache 2.0
+ *
+ * Copyright © 2023, KORE Wireless
+ * Licence: MIT
  *
  */
 #ifndef _HT16K33_HEADER_
 #define _HT16K33_HEADER_
 
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-
 /*
  * CONSTANTS
  */
 #define     HT16K33_I2C_ADDR            0x70
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 
 /*

@@ -1,9 +1,9 @@
 /**
  *
  * Microvisor IoT Device Demo
- * Version 3.0.3
- * Copyright © 2023, Twilio
- * Licence: Apache 2.0
+ *
+ * Copyright © 2023, KORE Wireless
+ * Licence: MIT
  *
  */
 #ifndef _MAIN_H_
@@ -37,11 +37,6 @@
 #include "lis3dh.h"
 #include "http.h"
 #include "network.h"
-
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 
 /*
@@ -81,6 +76,11 @@ extern "C" {
 #define     ERR_NETWORK_HANDLE_NOT_ZERO                 52
 #define     ERR_NETWORK_NC_NOT_OPEN                     53
 #define     ERR_TEST                                    99
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 
 /*

@@ -1,21 +1,13 @@
 /**
  *
  * Microvisor IoT Device Demo
- * Version 3.0.3
- * Copyright © 2023, Twilio
- * Licence: Apache 2.0
+ *
+ * Copyright © 2023, KORE Wireless
+ * Licence: MIT
  *
  */
 #ifndef _LIS3DH_HEADER_
 #define _LIS3DH_HEADER_
-
-
-// https://github.com/electricimp/LIS3DH/blob/master/LIS3DH.device.lib.nut
-
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 
 /*
@@ -126,6 +118,11 @@ typedef struct {
     bool    empty;
     bool    unread;
 } FifoState;        // Record for FIFO state info
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 
 /*

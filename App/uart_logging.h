@@ -1,18 +1,13 @@
 /**
  *
  * Microvisor IoT Device Demo
- * Version 3.0.3
- * Copyright © 2023, Twilio
- * Licence: Apache 2.0
+ *
+ * Copyright © 2023, KORE Wireless
+ * Licence: MIT
  *
  */
 #ifndef UART_LOGGING_H
 #define UART_LOGGING_H
-
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 
 /*
@@ -20,6 +15,11 @@ extern "C" {
  */
 #define UART_LOG_TIMESTAMP_MAX_LEN_B        64
 #define UART_LOG_MESSAGE_MAX_LEN_B          64
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 
 /*

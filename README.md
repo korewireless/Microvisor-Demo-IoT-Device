@@ -1,4 +1,4 @@
-# Microvisor IoT Device Demo 3.1.0
+# Microvisor IoT Device Demo
 
 This repo provides a basic demonstration of a sample IoT device application. It makes use of a temperature sensor and four-digit display to periodically read and present the local temperature. It transmits the data to a mock API. A motion sensor detects double-taps, which trigger warning messages to the mock API.
 

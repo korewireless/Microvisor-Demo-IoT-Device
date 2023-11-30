@@ -85,6 +85,6 @@ jobs:
     - name: Upload artifacts
       uses: actions/upload-artifact@v3
       with:
-        name: mv-iot-mac-docker
+        name: mv-iot-demo-mac-docker
         path: ${{ github.workspace }}/build/App/mv-iot-device-demo.*
         if-no-files-found: error
